@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
+  <title>Obscura</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Cinzel:wght@400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* GLOBAL STYLES */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%; width: 100%;
+      background: radial-gradient(ellipse at center, #111 0%, #000 100%);
+      font-family: 'Cardo', serif; color: #e0e0e0;
+      overflow: hidden; /* Dihandle oleh masing-masing view */
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .cardo-font { font-family: 'Cardo', serif; }
+    .inter-font { font-family: 'Inter', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* VIEW MANAGEMENT */
+    .app-view {
+      display: none;
+      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0;
+      overflow-y: auto; overflow-x: hidden;
+      z-index: 10;
+    }
+    .app-view.active-view { display: block; }
+    /* FIX: Hanya jadikan flex jika view-nya active */
+    .app-view.flex-view.active-view { display: flex; } 
+
+    /* FOG BACKGROUND (Global) */
+    .fog {
+      position: absolute; width: 200%; height: 200%;
+      background: url('https://www.transparenttextures.com/patterns/dark-mosaic.png');
+      animation: fogMove 20s linear infinite; opacity: 0.03; z-index: 1; pointer-events: none;
+    }
+    @keyframes fogMove { from { transform: translate(0, 0); } to { transform: translate(-50%, -50%); } }
+
+    /* --- SPLASH VIEW --- */
+    #view-splash { z-index: 20; }
+    .splash-container { height: 100%; width: 100%; display: grid; place-items: center; animation: pageFadeIn 1s ease forwards; }
+    .splash-circle, .splash-wrapper { grid-area: 1 / 1 / 2 / 2; }
+    .splash-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; }
+    .splash-circle { width: 240px; height: 240px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; animation: rotate 12s linear infinite; z-index: 1; filter: blur(0.8px); box-shadow: 0 0 25px rgba(255, 255, 255, 0.1); }
+    .splash-title { font-size: clamp(3rem, 14vw, 4.5rem); letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; text-shadow: 0 0 8px rgba(255, 255, 255, 0.05); animation: titleIn 3.5s ease-out forwards; cursor: pointer; margin: 0; }
+    .splash-subtitle { font-family: 'Cinzel', serif; color: #aaa; margin-top: 15px; letter-spacing: 1px; font-size: clamp(1rem, 4vw, 1.1rem); opacity: 0; transition: opacity 1.5s ease; pointer-events: none; }
+    .splash-subtitle.visible { opacity: 1; }
+    .splash-fade-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; opacity: 0; z-index: 3; transition: opacity 1s ease; pointer-events: none; }
+    .paused .splash-title, .paused .splash-circle { animation-play-state: paused; }
+    .fade-out { animation: fadeOut 1s forwards; }
+    @keyframes pageFadeIn { from { opacity: 0 } to { opacity: 1 } }
+    @keyframes titleIn { 0% { opacity: 0; transform: scale(0.8); } 70% { opacity: 1; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes fadeOut { to { opacity: 0; transform: scale(0.95); } }
+
+    /* --- ACCESS VIEW --- */
+    #view-access { flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .access-content { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; width: 90%; max-width: 380px; z-index: 2; }
+    .access-circle { position: absolute; width: 180px; height: 180px; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 50%; animation: rotate 12s linear infinite; z-index: 1; filter: blur(0.8px); }
+    .access-title { font-size: clamp(2.5rem, 10vw, 3.5rem); letter-spacing: 0.1em; text-transform: uppercase; margin: 0; z-index: 2; }
+    .access-desc { color: #aaa; margin-top: 10px; margin-bottom: 25px; z-index: 2; font-size: clamp(1rem, 4vw, 1.1rem); }
+    .access-input { width: 100%; box-sizing: border-box; padding: 14px; font-size: 1rem; text-align: center; text-transform: uppercase; background: rgba(0,0,0,0.3); border: 1px solid #444; color: #e0e0e0; border-radius: 8px; z-index: 2; font-family: 'Cardo', serif; }
+    .access-btn { width: 100%; padding: 14px; margin-top: 15px; font-size: 1.1rem; font-family: 'Cardo', serif; color: white; background-color: #28a745; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; z-index: 2; }
+    .access-btn:hover { background-color: #218838; transform: scale(1.02); }
+    .access-btn:disabled { background-color: #555; cursor: not-allowed; transform: scale(1); }
+    #statusMessage { margin-top: 20px; color: #dc3545; height: 20px; font-size: 0.9rem; z-index: 2; }
+
+    /* --- MAIN MENU VIEW --- */
+    #view-main { flex-direction: column; animation: fadeIn 1.2s ease forwards; }
+    .menu-scroll { flex: 1; overflow-y: auto; padding: 40px 0; }
+    .menu-column { display: flex; flex-direction: column; gap: 32px; align-items: center; width: 100%; position: relative; padding-bottom: 40px; }
+    .menu-item { width: 90vw; max-width: 300px; aspect-ratio: 1 / 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; background: rgba(255, 255, 255, 0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; text-align: center; color: inherit; position: relative; box-shadow: 0 0 10px rgba(255, 255, 255, 0.02); }
+    .menu-item.disabled { opacity: 0.5 !important; cursor: not-allowed; background: rgba(255, 255, 255, 0.01); transform: scale(0.98); }
+    .menu-item:not(.disabled):hover { background: rgba(255, 255, 255, 0.04); transform: scale(1.03); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
+    .menu-item img { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.8; filter: invert(1); }
+    .menu-item span { font-size: 16px; letter-spacing: 1px; }
+    .top-info { position: absolute; top: 10px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
+    .info-badge { color: #999; font-size: 12px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 8px; }
+    
+    /* MODALS */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1002; opacity: 0; transition: opacity 0.3s ease; }
+    .modal-overlay.visible { display: flex; opacity: 1; }
+    .modal-content { background: #1a1a1a; padding: 25px 30px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; box-shadow: 0 5px 25px rgba(0,0,0,0.5); width: 90%; max-width: 400px; font-family: 'Cardo', serif; }
+    .modal-title { font-size: 1.2em; margin-top: 0; margin-bottom: 20px; color: #e0e0e0; }
+    .modal-buttons { display: flex; gap: 15px; margin-top: 20px; }
+    .modal-buttons button, .modal-content > button { flex: 1; padding: 12px 20px; border-radius: 8px; border: none; font-size: 16px; cursor: pointer; transition: background-color 0.2s; font-family: 'Cardo', serif;}
+    .btn-green { background-color: #28a745; color: white; }
+    .btn-green:hover { background-color: #218838; }
+    .btn-gray { background-color: #6c757d; color: white; }
+    .btn-gray:hover { background-color: #5a6268; }
+    .btn-red { background-color: #d32f2f; color: white; }
+    .modal-input { width: 100%; padding: 10px; background: #111; border: 1px solid #444; color: #ccc; border-radius: 8px; text-align: center; font-size: 0.9em; font-family: 'Cardo', serif;}
+
+    /* --- API / SETTINGS VIEW --- */
+    .api-section { padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, .1); }
+    .api-section h2 { margin-top: 0; font-size: 1.2em;}
+    .api-input, .api-btn { width: 100%; box-sizing: border-box; font-family: 'Cardo', serif; padding: 12px; margin-top: 8px; background: #111; border: 1px solid #444; color: #e0e0e0; border-radius: 5px; display: block; font-size: 1em;}
+    .api-input:disabled { background-color: #222; cursor: not-allowed; }
+    .api-btn { cursor: pointer; transition: background-color 0.3s; }
+    .api-btn:hover { background-color: #222; }
+    .api-status { font-size: .9em; color: #888; margin-top: 4px; min-height: 1em; }
+
+    /* --- RECEIVER VIEW --- */
+    #view-receiver { justify-content: center; align-items: center; text-align: center; }
+    .receiver-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .breathing { font-size: 5vw; opacity: 0.6; animation: breath 2s ease-in-out infinite; max-width: 90vw; }
+    .active-text { font-size: 5vw; font-weight: bold; max-width: 90vw; opacity: 1; animation: textFadeIn 0.5s ease; }
+    @keyframes textFadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    @keyframes breath { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+    .top-button { position: fixed; top: 16px; padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 14px; z-index: 1000; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #e0e0e0; cursor: pointer; transition: background 0.3s ease; font-family: 'Cardo', serif;}
+    .top-button:hover { background: rgba(255, 255, 255, 0.1); }
+    #ttsButton { margin-top: 30px; padding: 12px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); cursor: pointer; }
+    #ttsButton svg { width: 24px; height: 24px; fill: #e0e0e0; }
+    #ttsButton.disabled svg { opacity: 0.4; }
+
+    /* --- SENDER VIEW (Standard) --- */
+    .sender-section { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 20px 0; }
+    .sender-h2 { font-size: 18px; color: #aaa; margin-bottom: 15px; font-weight: 400; }
+    .sender-input { width: 100%; padding: 12px; font-size: 16px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: #eee; text-align: center; font-family: 'Cardo', serif;}
+    .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .calc-keys-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .grid-btn { font-size: 20px; padding: 16px; background: rgba(255,255,255,0.05); color: #eee; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; font-family: 'Cardo', serif;}
+    .grid-btn:hover { background-color: rgba(255,255,255,0.1); }
+    .calc-display { background-color: rgba(255, 255, 255, 0.05); border-radius: 10px; height: 48px; line-height: 48px; font-size: 37px; text-align: center; padding: 0 10px; overflow-x: auto; white-space: nowrap; font-family: 'Courier New', monospace; margin-bottom: 30px; margin-top:12px;}
+    .mode-firebase { background-color: #2a4a75; } 
+    .mode-ntfy { background-color: #2a755a; }
+
+    /* GLOBAL TOAST / POPUP */
+    .global-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2); padding: 12px 25px; border-radius: 8px; font-family: 'Cardo', serif; font-size: 16px; color: #e0e0e0; box-shadow: 0 4px 20px rgba(0, 0, 0, .6); backdrop-filter: blur(5px); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .5s ease; text-align: center; }
+    .global-toast.show { opacity: 1; }
+
+    /* UTILITY */
+    .back-nav { display: block; padding: 12px; background-color: rgba(255,255,255,0.05); color: #ddd; text-align: center; border-radius: 8px; margin-bottom: 20px; text-decoration: none; cursor: pointer; font-family: 'Cardo', serif; border: 1px solid rgba(255,255,255,0.1); }
+  </style>
+</head>
+<body>
+
+  <!-- FOG ANIMATION -->
+  <div class="fog" id="global-fog"></div>
+
+  <!-- ========================================== -->
+  <!-- 1. SPLASH VIEW                             -->
+  <!-- ========================================== -->
+  <div id="view-splash" class="app-view active-view">
+    <div class="splash-container" id="intro">
+      <div class="splash-circle"></div>
+      <div class="splash-wrapper">
+          <h1 class="splash-title" id="splash-title">OBSCURA</h1>
+          <p class="splash-subtitle" id="splash-subtitle"></p>
+      </div>
+    </div>
+    <div class="splash-fade-layer" id="splash-fade"></div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. ACCESS VIEW (LOGIN)                     -->
+  <!-- ========================================== -->
+  <div id="view-access" class="app-view flex-view">
+    <div class="access-content">
+      <div class="access-circle"></div>
+      <h1 class="access-title">OBSCURA</h1>
+      <p class="access-desc">Masukkan Kode Akses Sekali Pakai</p>
+      <input type="text" id="accessCode" class="access-input" placeholder="KODE-ANDA" autocomplete="off">
+      <button id="submitBtn" class="access-btn">Masuk</button>
+      <div id="statusMessage"></div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 3. MAIN MENU DASHBOARD                     -->
+  <!-- ========================================== -->
+  <div id="view-main" class="app-view flex-view">
+    <div class="top-info">
+      <div id="userCodeDisplay" class="info-badge"></div>
+      <div id="connectionInfo" class="info-badge" style="text-align: right;"></div>
+    </div>
+    <div class="menu-scroll">
+      <div class="menu-column">
+          <div class="menu-item" id="btn-nav-receiver">
+              <img src="https://img.icons8.com/ios/50/listening--v1.png" alt="Receiver" />
+              <br><span>Receiver</span>
+          </div>
+          <div class="menu-item" id="btn-nav-sender">
+              <img src="https://img.icons8.com/ios/50/voice-recognition-scan.png" alt="Sender" />
+              <br><span>Sender</span>
+          </div>
+          <div class="menu-item" id="btn-nav-thumper">
+              <img src="https://img.icons8.com/ios/50/camera--v4.png" alt="Thumper" />
+              <br><span>Thumper Kamera</span>
+          </div>
+          <div class="menu-item" id="btn-nav-api">
+              <img src="https://img.icons8.com/ios/50/settings--v1.png" alt="Settings" />
+              <br><span>Pengaturan</span>
+          </div>
+          <div class="menu-item disabled">
+              <img src="https://img.icons8.com/ios/50/book--v1.png" alt="Panduan" />
+              <br><span>Panduan</span>
+          </div>
+          <div class="menu-item" id="guestActionButton">
+              <img id="guestActionImg" src="https://img.icons8.com/ios-filled/50/link--v1.png" alt="Guest Link" />
+              <br><span id="guestActionText">Buat Link Tamu</span>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN MODALS -->
+  <div id="setupModal" class="modal-overlay">
+    <div class="modal-content">
+        <p class="modal-title">Selamat Datang!</p>
+        <p style="margin-bottom: 25px; color:#aaa;">Anda belum mengatur Nama dan ID. Klik tombol di bawah untuk mengaturnya.</p>
+        <button id="goToSettingsBtn" class="btn-green">Atur Identitas</button>
+    </div>
+  </div>
+  <div id="requestModal" class="modal-overlay">
+    <div class="modal-content">
+        <p class="modal-title" id="requestMessage"></p>
+        <div class="modal-buttons">
+            <button id="denyBtn" class="btn-gray">Tolak</button>
+            <button id="acceptBtn" class="btn-green">Izinkan</button>
+        </div>
+    </div>
+  </div>
+  <div id="viewChoiceModal" class="modal-overlay">
+    <div class="modal-content">
+      <p class="modal-title">Pilih Tipe Tampilan Tamu</p>
+      <div class="modal-buttons" style="flex-direction: column; gap: 10px;">
+        <button id="generateSimpleLinkBtn" class="btn-green">Tampilan Simple</button>
+        <button id="generateSimpleNtfyLinkBtn" class="btn-green">Tampilan Simple (Notifikasi)</button>
+        <button id="generateDisguiseLinkBtn" class="btn-green">Tampilan Disguise (Kamera)</button>
+        <button id="generateDisguiseNtfyLinkBtn" class="btn-green">Tampilan Disguise (Notifikasi)</button>
+      </div>
+      <button id="cancelChoiceBtn" class="btn-gray" style="width: 100%; margin-top: 15px;">Batal</button>
+    </div>
+  </div>
+  <div id="shareModal" class="modal-overlay">
+    <div class="modal-content">
+        <p class="modal-title">Bagikan Link Tamu</p>
+        <input type="text" id="guestLinkInput" class="modal-input" readonly>
+        <div class="modal-buttons">
+            <button id="copyBtn" class="btn-gray">Salin</button>
+            <button id="shareBtn" class="btn-green">Bagikan</button>
+        </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 4. API / SETTINGS VIEW                     -->
+  <!-- ========================================== -->
+  <div id="view-api" class="app-view">
+    <div style="padding: 24px;">
+        <div class="back-nav btn-nav-main">← Kembali ke Menu</div>
+        
+        <section class="api-section">
+            <h2>Identitas Anda</h2>
+            <input type="text" id="api-userName" class="api-input" placeholder="Masukkan nama Anda">
+            <div id="api-nameStatus" class="api-status"></div>
+            <button id="api-saveNameBtn" class="api-btn btn-green" style="display:none; margin-top: 10px;">Simpan Nama</button>
+            <input type="text" id="api-uniqueCode" class="api-input" maxlength="6" placeholder="6 digit angka" disabled>
+            <div id="api-codeStatus" class="api-status"></div>
+            <button id="api-resetCodeBtn" class="api-btn" style="display:none; margin-top: 10px;">Ganti Identitas</button>
+        </section>
+
+        <section class="api-section">
+            <h2>Partner</h2>
+            <input type="text" id="api-accompliceCode" class="api-input" placeholder="Masukkan ID partner">
+            <button id="api-linkBtn" class="api-btn btn-green">Kirim Permintaan Koneksi</button>
+            <div id="api-partnerStatus" class="api-status"></div>
+            <button id="api-cancelRequestBtn" class="api-btn btn-gray" style="display:none; margin-top: 10px;">Batalkan Permintaan</button>
+            <button id="api-disconnectBtn" class="api-btn" style="display:none; margin-top: 10px; background-color: #521818;">Putuskan Sambungan</button>
+        </section>
+
+        <section class="api-section">
+            <h2>Notifikasi Ntfy.sh</h2>
+            <input type="text" id="api-ntfyTopicInput" class="api-input" placeholder="contoh: obscurabyheri-notif">
+            <button id="api-saveNtfyBtn" class="api-btn btn-green">Simpan Topik Ntfy</button>
+        </section>
+
+        <section class="api-section">
+            <h2>Custom Thump</h2>
+            <input type="text" id="api-customPresetInput" class="api-input" placeholder="Pisahkan preset dengan koma">
+            <div style="margin-top: 10px; display: flex; gap: 10px;">
+            <button id="api-savePresetBtn" class="api-btn btn-green">Simpan Preset</button>
+            <button id="api-clearPresetBtn" class="api-btn btn-red">Hapus</button>
+            </div>
+        </section>
+
+        <section class="api-section" style="border:none;">
+            <button id="api-clearDataBtn" class="api-btn" style="background-color: #400; color: #f44336;">Hapus Semua Jejak</button>
+        </section>
+    </div>
+  </div>
+
+  <div id="api-confirmModal" class="modal-overlay">
+    <div class="modal-content">
+      <div id="api-confirmText" style="margin-bottom: 20px; font-size: 1.1em; line-height: 1.5;"></div>
+      <div class="modal-buttons">
+        <button id="api-confirmYes" class="btn-red">Ya</button>
+        <button id="api-confirmNo" class="btn-gray">Tidak</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 5. RECEIVER VIEW                           -->
+  <!-- ========================================== -->
+  <div id="view-receiver" class="app-view flex-view">
+    <div class="back-nav btn-nav-main top-button" style="left:16px; top:16px; position:fixed; margin:0; padding:8px 14px;">← Kembali</div>
+    <button id="rec-clearButton" class="top-button" style="right:16px;">Clear Display</button>
+    <div class="receiver-wrapper">
+        <div class="breathing" id="rec-mainText">Menunggu Data...</div>
+        <button id="ttsButton" title="Voice Toggle"></button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 6. STANDARD SENDER VIEW                    -->
+  <!-- ========================================== -->
+  <div id="view-sender" class="app-view">
+    <div style="padding: 24px;">
+        <div class="back-nav btn-nav-main">← Kembali ke Menu</div>
+        <section class="sender-section">
+            <h2 class="sender-h2">Mode Pengiriman</h2>
+            <button id="std-sendModeToggleBtn" class="api-btn mode-firebase" style="font-size:16px;" disabled>Memuat...</button>
+        </section>
+        <section class="sender-section">
+            <h2 class="sender-h2">Input Teks</h2>
+            <input type="text" id="std-textInput" class="sender-input" placeholder="Ketik dan tekan Enter" />
+        </section>
+        <section class="sender-section">
+            <h2 class="sender-h2">Input Angka Cepat</h2>
+            <div class="numpad-grid" id="std-numpad"></div>
+        </section>
+        <section class="sender-section">
+            <h2 class="sender-h2">Kalkulator & Mnemonica</h2>
+            <div class="calc-display" id="std-calcDisplay"></div>
+            <div class="calc-keys-grid" id="std-calcKeys"></div>
+        </section>
+        <section class="sender-section" style="border:none;">
+            <h2 class="sender-h2">Custom Thump</h2>
+            <div class="numpad-grid" id="std-customPresetArea"></div>
+        </section>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 7. THUMPER CAMERA VIEW (DUAL MODE)         -->
+  <!-- ========================================== -->
+  <div id="view-thumper" class="app-view bg-black">
+    
+    <!-- A. Camera Disguise -->
+    <div id="th-view-disguise" class="w-full h-screen text-white flex flex-col justify-between items-center inter-font overflow-hidden relative">
+        <video id="th-camera-feed" autoplay playsinline muted class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
+        <div class="relative z-10 w-full h-full flex flex-col justify-between">
+            <div class="w-full bg-black/30 backdrop-blur-sm pt-4 pb-2">
+                <div class="w-full px-4 flex justify-between items-center text-white text-sm">
+                    <div class="w-1/4 text-left"><img src="https://img.icons8.com/ios-filled/100/flash-off.png" class="w-6 h-6 brightness-0 invert" /></div>
+                    <div class="w-1/2 text-center"><span id="th-timer-display" class="bg-red-600/80 rounded-md px-2 py-1 font-mono text-base">00:00:00</span></div>
+                    <div class="w-1/4 text-right font-sans font-medium">HD • 30</div>
+                </div>
+            </div>
+            <div class="flex-grow"></div>
+            <div class="w-full bg-black/30 backdrop-blur-sm">
+                <div class="flex flex-col items-center py-3 space-y-3">
+                    <div id="th-mode-selector" class="w-full px-4 overflow-x-auto whitespace-nowrap text-center no-scrollbar"></div>
+                    <div class="w-full px-4 flex justify-around items-center">
+                        <div class="w-12 h-12"></div>
+                        <button id="th-record-btn" class="w-20 h-20 bg-white rounded-full flex items-center justify-center transform transition active:scale-90"><div class="w-16 h-16 bg-red-500 rounded-full border-4 border-white"></div></button>
+                        <button class="btn-nav-main text-gray-300 hover:text-white transition-colors p-2 rounded-full">
+                            <img src="https://img.icons8.com/sf-regular/48/switch-camera.png" class="w-8 h-8 brightness-0 invert" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="th-popup" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-4 py-2 rounded-lg shadow-lg z-20 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+    </div>
+
+    <!-- B. Hidden Sender Menu -->
+    <div id="th-view-sender" class="hidden w-full min-h-screen text-gray-200 flex-col" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%);">
+        <div class="flex-1 p-6" id="th-sender-scroll">
+            <button id="th-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
+            <section class="mb-8 pb-5 border-b border-white/10">
+                <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Teks</h2>
+                <input type="text" id="th-text-input" placeholder="Ketik dan tekan Enter" class="w-full p-3 text-center bg-white/5 rounded-lg cardo-font" />
+            </section>
+            <section class="mb-8 pb-5 border-b border-white/10">
+                <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Angka Cepat</h2>
+                <div id="th-numpad" class="grid grid-cols-3 gap-3"></div>
+            </section>
+            <section class="mb-8 pb-5 border-b border-white/10">
+                <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Kalkulator & Mnemonica</h2>
+                <div class="bg-transparent rounded-lg">
+                    <div id="th-calc-display" class="h-14 mb-5 text-4xl text-center font-mono bg-white/5 rounded-lg flex items-center justify-center px-3 overflow-x-auto"></div>
+                    <div id="th-calc-keys" class="grid grid-cols-4 gap-2"></div>
+                </div>
+            </section>
+            <section id="th-custom-section" class="hidden">
+                <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Custom Thump</h2>
+                <div id="th-custom-preset" class="grid grid-cols-3 gap-3"></div>
+            </section>
+        </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 8. GUEST SENDER VIEW                       -->
+  <!-- ========================================== -->
+  <div id="view-guest" class="app-view bg-black">
+      
+      <!-- Loading State -->
+      <div id="gu-status-container" class="flex justify-center items-center h-screen cardo-font text-xl text-gray-400">
+          <p id="gu-status-message">Menghubungkan...</p>
+      </div>
+
+      <!-- A. Simple Guest View -->
+      <div id="gu-view-simple" class="hidden w-full min-h-screen p-6 box-border cardo-font" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%);">
+          <section class="mb-5 pb-5 border-b border-white/10">
+              <h2 class="text-lg text-gray-400 mb-4 font-normal">Input Teks</h2>
+              <input type="text" id="gu-simple-text" placeholder="Ketik lalu tekan Enter" class="w-full p-3 text-center bg-white/5 rounded-lg text-white border-none" />
+          </section>
+          <section class="mb-5 pb-5 border-b border-white/10">
+              <h2 class="text-lg text-gray-400 mb-4 font-normal">Input Angka Cepat</h2>
+              <div id="gu-simple-numpad" class="grid grid-cols-3 gap-3"></div>
+          </section>
+          <section>
+              <h2 class="text-lg text-gray-400 mb-4 font-normal">Kalkulator & Mnemonica</h2>
+              <div id="gu-simple-calc-display" class="bg-black/20 p-4 rounded-lg text-2xl mb-3 min-h-[32px] text-right break-words font-mono"></div>
+              <div id="gu-simple-calc-keys" class="grid grid-cols-4 gap-3"></div>
+          </section>
+      </div>
+
+      <!-- B. Disguise Guest View -->
+      <div id="gu-view-disguise-wrapper" class="hidden w-full h-full">
+          <!-- Camera Screen -->
+          <div id="gu-view-disguise" class="w-full h-screen text-white flex flex-col justify-between items-center inter-font overflow-hidden relative">
+              <video id="gu-camera-feed" autoplay playsinline muted class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
+              <div class="relative z-10 w-full h-full flex flex-col justify-between">
+                  <div class="w-full bg-black/30 backdrop-blur-sm pt-4 pb-2">
+                      <div class="w-full px-4 flex justify-between items-center text-white text-sm">
+                          <div class="w-1/4 text-left"><img src="https://img.icons8.com/ios-filled/100/flash-off.png" class="w-6 h-6 brightness-0 invert" /></div>
+                          <div class="w-1/2 text-center"><span id="gu-timer-display" class="bg-red-600/80 rounded-md px-2 py-1 font-mono text-base">00:00:00</span></div>
+                          <div class="w-1/4 text-right font-sans font-medium">HD • 30</div>
+                      </div>
+                  </div>
+                  <div class="flex-grow"></div>
+                  <div class="w-full bg-black/30 backdrop-blur-sm flex justify-center items-center py-6">
+                      <button id="gu-record-btn" class="w-20 h-20 bg-white rounded-full flex items-center justify-center transform transition active:scale-90"><div class="w-16 h-16 bg-red-500 rounded-full border-4 border-white"></div></button>
+                  </div>
+              </div>
+              <div id="gu-popup" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-4 py-2 rounded-lg shadow-lg z-20 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+          </div>
+          
+          <!-- Hidden Sender Screen -->
+          <div id="gu-view-sender" class="hidden w-full min-h-screen text-gray-200 flex-col p-6" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%);">
+              <button id="gu-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
+              <section class="mb-8 pb-5 border-b border-white/10">
+                  <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Teks</h2>
+                  <input type="text" id="gu-disguise-text" placeholder="Ketik dan tekan Enter" class="w-full p-3 text-center bg-white/5 rounded-lg cardo-font" />
+              </section>
+              <section class="mb-8 pb-5 border-b border-white/10">
+                  <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Angka Cepat</h2>
+                  <div id="gu-disguise-numpad" class="grid grid-cols-3 gap-3"></div>
+              </section>
+              <section>
+                  <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Kalkulator & Mnemonica</h2>
+                  <div id="gu-disguise-calc-display" class="h-14 mb-5 text-4xl text-center font-mono bg-white/5 rounded-lg flex items-center justify-center px-3 overflow-x-auto"></div>
+                  <div id="gu-disguise-calc-keys" class="grid grid-cols-4 gap-2"></div>
+              </section>
+          </div>
+      </div>
+  </div>
+
+  <div id="globalToast" class="global-toast"></div>
+
+  <!-- MAIN SCRIPT MODULE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getDatabase, ref, get, set, remove, onValue, update, onDisconnect, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDagbp2KWMuueh-ZmFZQ-nSAnRcummUgkM",
+      authDomain: "obscurabyheri.firebaseapp.com",
+      databaseURL: "https://obscurabyheri-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "obscurabyheri",
+      storageBucket: "obscurabyheri.appspot.com",
+      messagingSenderId: "866868400960",
+      appId: "1:866868400960:web:440e1b4979a1c0cf8a20a5"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- GLOBAL VARIABLES & UTILS ---
+    let currentViewId = null;
+    let cleanupFunc = null; // Menyimpan fungsi cleanup untuk view yg ditinggalkan
+    const fog = document.getElementById('global-fog');
+
+    const kartuMapFull = { 1: '4 Keriting', 2: '2 Hati', 3: '7 Wajik', 4: '3 Keriting', 5: '4 Hati', 6: '6 Wajik', 7: 'Ace Sekop', 8: '5 Hati', 9: '9 Sekop', 10: '2 Sekop', 11: 'Queen Hati', 12: '3 Wajik', 13: 'Queen Keriting', 14: '8 Hati', 15: '6 Sekop', 16: '5 Sekop', 17: '9 Hati', 18: 'King Keriting', 19: '2 Wajik', 20: 'Jack Hati', 21: '3 Sekop', 22: '8 Sekop', 23: '6 Hati', 24: '10 Keriting', 25: '5 Wajik', 26: 'King Wajik', 27: '2 Keriting', 28: '3 Hati', 29: '8 Wajik', 30: '5 Keriting', 31: 'King Sekop', 32: 'Jack Wajik', 33: '8 Keriting', 34: '10 Sekop', 35: 'King Hati', 36: 'Jack Keriting', 37: '7 Sekop', 38: '10 Hati', 39: 'Ace Wajik', 40: '4 Sekop', 41: '7 Hati', 42: '4 Wajik', 43: 'Ace Keriting', 44: '9 Keriting', 45: 'Jack Sekop', 46: 'Queen Wajik', 47: '7 Keriting', 48: 'Queen Sekop', 49: '10 Wajik', 50: '6 Keriting', 51: 'Ace Hati', 52: '9 Wajik' };
+    const kartuMapShort = [ "4S", "2H", "7C", "3S", "4H", "6C", "AS", "5H", "9S", "2C", "QH", "3C", "QS", "5S", "7H", "JC", "AH", "8S", "6H", "JS", "5C", "KH", "10S", "3H", "8C", "KS", "3D", "JH", "9C", "KC", "8H", "10C", "KD", "2S", "7D", "AC", "9H", "2D", "JD", "4C", "6D", "8D", "4D", "AD", "9D", "QC", "7S", "10D", "5D", "QD", "10H", "6S" ];
+
+    function showGlobalToast(msg, duration=2500) {
+        const t = document.getElementById('globalToast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), duration);
+    }
+
+    // --- CORE ROUTER ---
+    function navigate(targetViewId) {
+        // Auth Guard logic
+        const authRequired = ['view-main', 'view-api', 'view-receiver', 'view-sender', 'view-thumper'];
+        const isAuthorized = localStorage.getItem('obscura_authorized') === 'true';
+        if (authRequired.includes(targetViewId) && !isAuthorized) {
+            targetViewId = 'view-access';
+        }
+
+        // Cleanup prev view
+        if (cleanupFunc) { cleanupFunc(); cleanupFunc = null; }
+
+        // Hide all, Show target
+        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active-view'));
+        const target = document.getElementById(targetViewId);
+        if (target) {
+            target.classList.add('active-view');
+            // Background overrides
+            if(targetViewId === 'view-thumper' || targetViewId === 'view-guest') {
+                document.body.classList.add('bg-black');
+                fog.style.display = 'none';
+            } else {
+                document.body.classList.remove('bg-black');
+                fog.style.display = 'block';
+            }
+        }
+
+        currentViewId = targetViewId;
+
+        // Initialize Target View
+        if (targetViewId === 'view-splash') initSplash();
+        else if (targetViewId === 'view-access') initAccess();
+        else if (targetViewId === 'view-main') initMain();
+        else if (targetViewId === 'view-api') initApi();
+        else if (targetViewId === 'view-receiver') initReceiver();
+        else if (targetViewId === 'view-sender') initSender();
+        else if (targetViewId === 'view-thumper') initThumper();
+        else if (targetViewId === 'view-guest') initGuest();
+    }
+
+    // Handle universal back buttons
+    document.querySelectorAll('.btn-nav-main').forEach(btn => {
+        btn.addEventListener('click', () => navigate('view-main'));
+    });
+
+    // --- 1. SPLASH INIT ---
+    function initSplash() {
+        const intro = document.getElementById('intro');
+        const title = document.getElementById('splash-title');
+        const subtitle = document.getElementById('splash-subtitle');
+        const fadeLayer = document.getElementById('splash-fade');
+        
+        intro.classList.remove('fade-out', 'paused');
+        fadeLayer.style.opacity = 0;
+
+        const isAuthorized = localStorage.getItem('obscura_authorized') === 'true';
+        
+        setTimeout(() => {
+            if (isAuthorized) {
+                subtitle.textContent = "Beyond Perception";
+                subtitle.classList.add('visible');
+                setTimeout(() => {
+                    intro.classList.add('fade-out');
+                    fadeLayer.style.opacity = 1;
+                    setTimeout(() => navigate('view-main'), 1000);
+                }, 2500);
+            } else {
+                subtitle.textContent = "klik judul untuk melanjutkan";
+                intro.classList.add('paused');
+                subtitle.classList.add('visible');
+                title.addEventListener('click', () => {
+                    subtitle.classList.remove('visible');
+                    intro.classList.add('fade-out');
+                    fadeLayer.style.opacity = 1;
+                    setTimeout(() => navigate('view-access'), 1000);
+                }, { once: true });
+            }
+        }, 3500);
+    }
+
+    // --- 2. ACCESS INIT ---
+    function initAccess() {
+        const codeInput = document.getElementById('accessCode');
+        const submitBtn = document.getElementById('submitBtn');
+        const status = document.getElementById('statusMessage');
+        
+        codeInput.value = ''; status.textContent = '';
+        
+        const handleAccess = async () => {
+            const code = codeInput.value.trim().toUpperCase();
+            if (!code) { status.textContent = "Kode tidak boleh kosong."; return; }
+
+            const accessRef = ref(db, `accessCodes/${code}`);
+            status.textContent = "Memverifikasi..."; submitBtn.disabled = true;
+
+            try {
+                const snapshot = await get(accessRef);
+                if (snapshot.exists()) {
+                    status.textContent = "Berhasil! Membuka...";
+                    status.style.color = "#28a745";
+                    await remove(accessRef);
+                    localStorage.setItem('obscura_authorized', 'true');
+                    setTimeout(() => navigate('view-main'), 1000);
+                } else {
+                    status.textContent = "Kode Akses tidak valid atau sudah digunakan.";
+                    submitBtn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                status.textContent = "Terjadi kesalahan jaringan.";
+                submitBtn.disabled = false;
+            }
+        };
+
+        submitBtn.onclick = handleAccess;
+        codeInput.onkeyup = (e) => { if (e.key === 'Enter') handleAccess(); };
+    }
+
+    // --- 3. MAIN DASHBOARD INIT ---
+    let mainListeners = [];
+    function initMain() {
+        // Clear previous listeners
+        mainListeners.forEach(unsub => unsub()); mainListeners = [];
+
+        const myCode = localStorage.getItem('myCode');
+        const userCodeDisplay = document.getElementById('userCodeDisplay');
+        const connectionInfo = document.getElementById('connectionInfo');
+        const guestActionBtn = document.getElementById('guestActionButton');
+        const guestActionText = document.getElementById('guestActionText');
+        const guestActionImg = document.getElementById('guestActionImg');
+        const btnReceiver = document.getElementById('btn-nav-receiver');
+        const btnSender = document.getElementById('btn-nav-sender');
+        const btnThumper = document.getElementById('btn-nav-thumper');
+        const btnApi = document.getElementById('btn-nav-api');
+
+        btnReceiver.onclick = () => { if(!btnReceiver.classList.contains('disabled')) navigate('view-receiver'); };
+        btnSender.onclick = () => { if(!btnSender.classList.contains('disabled')) navigate('view-sender'); };
+        btnThumper.onclick = () => navigate('view-thumper');
+        btnApi.onclick = () => navigate('view-api');
+
+        if (!myCode) {
+            document.getElementById('setupModal').classList.add('visible');
+            document.getElementById('goToSettingsBtn').onclick = () => {
+                document.getElementById('setupModal').classList.remove('visible');
+                navigate('view-api');
+            }
+            [btnReceiver, btnSender, btnThumper].forEach(b => b.classList.add('disabled'));
+            return;
+        }
+
+        const myName = localStorage.getItem('myName');
+        userCodeDisplay.textContent = myName ? `${myName} (${myCode})` : `ID: ${myCode}`;
+
+        let currentConnType = null;
+
+        const updateMenu = (type, data = null) => {
+            currentConnType = type;
+            guestActionText.textContent = "Buat Link Tamu";
+            guestActionImg.src = "https://img.icons8.com/ios-filled/50/link--v1.png";
+            guestActionBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+            guestActionBtn.onclick = () => document.getElementById('viewChoiceModal').classList.add('visible');
+            btnReceiver.classList.add('disabled');
+            btnSender.classList.add('disabled');
+            connectionInfo.style.color = '#999';
+            connectionInfo.textContent = `Tidak Tersambung`;
+
+            if (type === 'partner') {
+                connectionInfo.style.color = '#4caf50';
+                connectionInfo.textContent = data.name ? `${data.name} (${data.id})` : data.id;
+                btnReceiver.classList.remove('disabled'); btnSender.classList.remove('disabled');
+                guestActionText.textContent = "Putuskan Koneksi";
+                guestActionImg.src = "https://img.icons8.com/wired/64/broken-link.png";
+                guestActionBtn.style.backgroundColor = '#4a2525';
+                guestActionBtn.onclick = handleDisconnect;
+            } else if (type === 'guest') {
+                connectionInfo.style.color = '#4caf50';
+                connectionInfo.textContent = "Tamu Terhubung";
+                btnReceiver.classList.remove('disabled');
+                guestActionText.textContent = "Putuskan Koneksi";
+                guestActionImg.src = "https://img.icons8.com/wired/64/broken-link.png";
+                guestActionBtn.style.backgroundColor = '#4a2525';
+                guestActionBtn.onclick = handleDisconnect;
+            }
+        };
+
+        const handleDisconnect = async () => {
+            showGlobalToast("Memutuskan koneksi...");
+            if (currentConnType === 'partner') {
+                const partnerCode = localStorage.getItem('accompliceCode');
+                if (partnerCode && partnerCode !== 'GUEST') {
+                    await remove(ref(db, `connections/${myCode}/partner`));
+                    await remove(ref(db, `connections/${partnerCode}/partner`));
+                }
+            } else if (currentConnType === 'guest') {
+                await remove(ref(db, `guestConnections/${myCode}`));
+            }
+        };
+
+        updateMenu(null);
+
+        // Listeners
+        const unsubRequest = onValue(ref(db, `connections/${myCode}/requestFrom`), async (snap) => {
+            if (snap.exists() && !currentConnType) {
+                const reqCode = snap.val();
+                const reqSnap = await get(ref(db, `users/${reqCode}`));
+                const reqName = reqSnap.exists() ? reqSnap.val().name : reqCode;
+                const modal = document.getElementById('requestModal');
+                document.getElementById('requestMessage').textContent = `${reqName} (${reqCode}) minta koneksi`;
+                modal.classList.add('visible');
+                document.getElementById('acceptBtn').onclick = async () => {
+                    await set(ref(db, `connections/${myCode}/partner`), reqCode);
+                    await set(ref(db, `connections/${reqCode}/partner`), myCode);
+                    await remove(ref(db, `connections/${myCode}/requestFrom`));
+                    modal.classList.remove('visible');
+                };
+                document.getElementById('denyBtn').onclick = async () => {
+                    await remove(ref(db, `connections/${myCode}/requestFrom`));
+                    modal.classList.remove('visible');
+                };
+            }
+        });
+        
+        const unsubPartner = onValue(ref(db, `connections/${myCode}/partner`), async (snap) => {
+            if (snap.exists()) {
+                const partnerCode = snap.val();
+                const partnerSnap = await get(ref(db, `users/${partnerCode}`));
+                localStorage.setItem('accompliceCode', partnerCode);
+                updateMenu('partner', { id: partnerCode, name: partnerSnap.exists() ? partnerSnap.val().name : null });
+            } else if (currentConnType === 'partner') {
+                localStorage.removeItem('accompliceCode');
+                updateMenu(null);
+            }
+        });
+
+        const unsubGuest = onValue(ref(db, `guestConnections/${myCode}`), (snap) => {
+            if (currentConnType !== 'partner') {
+                if (snap.exists()) {
+                    localStorage.setItem('accompliceCode', 'GUEST');
+                    updateMenu('guest');
+                } else if (currentConnType === 'guest') {
+                    localStorage.removeItem('accompliceCode');
+                    updateMenu(null);
+                }
+            }
+        });
+
+        mainListeners.push(unsubRequest, unsubPartner, unsubGuest);
+
+        // Guest Link Gen
+        const genLink = async (viewType, useNtfy) => {
+            document.getElementById('viewChoiceModal').classList.remove('visible');
+            const token = `GUEST-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            await set(ref(db, `guestTokens/${token}`), { hostId: myCode, createdAt: Date.now() });
+            
+            // Clean URL base
+            let url = window.location.origin + window.location.pathname + `?token=${token}`;
+            if(viewType === 'disguise') url += '&view=disguise';
+            
+            if (useNtfy) {
+                const snap = await get(ref(db, `users/${myCode}`));
+                if (snap.exists() && snap.val().ntfyTopic) {
+                    url += `&ntfy=${snap.val().ntfyTopic}`;
+                } else {
+                    showGlobalToast("Ntfy belum disetting, tanpa notif.");
+                }
+            }
+            
+            document.getElementById('guestLinkInput').value = url;
+            document.getElementById('shareModal').classList.add('visible');
+        };
+
+        document.getElementById('generateSimpleLinkBtn').onclick = () => genLink('simple', false);
+        document.getElementById('generateSimpleNtfyLinkBtn').onclick = () => genLink('simple', true);
+        document.getElementById('generateDisguiseLinkBtn').onclick = () => genLink('disguise', false);
+        document.getElementById('generateDisguiseNtfyLinkBtn').onclick = () => genLink('disguise', true);
+        document.getElementById('cancelChoiceBtn').onclick = () => document.getElementById('viewChoiceModal').classList.remove('visible');
+        
+        document.getElementById('copyBtn').onclick = () => {
+            navigator.clipboard.writeText(document.getElementById('guestLinkInput').value);
+            showGlobalToast("Tersalin!");
+        };
+        document.getElementById('shareBtn').onclick = () => {
+            const l = document.getElementById('guestLinkInput').value;
+            if(navigator.share) navigator.share({title:'Undangan Obscura', url: l});
+            else { navigator.clipboard.writeText(l); showGlobalToast("Tersalin!"); }
+        };
+
+        // Modal closers
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('click', (e) => { if(e.target===m) m.classList.remove('visible'); });
+        });
+    }
+
+    // --- 4. API SETTINGS INIT ---
+    function initApi() {
+        const dom = {
+            uName: document.getElementById('api-userName'), nameStat: document.getElementById('api-nameStatus'),
+            saveName: document.getElementById('api-saveNameBtn'), uCode: document.getElementById('api-uniqueCode'),
+            codeStat: document.getElementById('api-codeStatus'), resetCode: document.getElementById('api-resetCodeBtn'),
+            accCode: document.getElementById('api-accompliceCode'), linkBtn: document.getElementById('api-linkBtn'),
+            partStat: document.getElementById('api-partnerStatus'), cancReq: document.getElementById('api-cancelRequestBtn'),
+            discBtn: document.getElementById('api-disconnectBtn'),
+            ntfyIn: document.getElementById('api-ntfyTopicInput'), saveNtfy: document.getElementById('api-saveNtfyBtn'),
+            presIn: document.getElementById('api-customPresetInput'), savePres: document.getElementById('api-savePresetBtn'),
+            clearPres: document.getElementById('api-clearPresetBtn'), clearData: document.getElementById('api-clearDataBtn'),
+            confModal: document.getElementById('api-confirmModal'), confText: document.getElementById('api-confirmText'),
+            confYes: document.getElementById('api-confirmYes'), confNo: document.getElementById('api-confirmNo')
+        };
+        
+        let confirmCallback = null;
+        const showConf = (txt, cb) => { dom.confText.textContent=txt; confirmCallback=cb; dom.confModal.classList.add('visible'); };
+        dom.confNo.onclick = () => dom.confModal.classList.remove('visible');
+        dom.confYes.onclick = () => { if(confirmCallback) confirmCallback(); dom.confModal.classList.remove('visible'); };
+
+        const myCode = localStorage.getItem('myCode');
+        const myName = localStorage.getItem('myName');
+
+        const setupUI = async () => {
+            if (myCode && myName) {
+                dom.uName.value = myName; dom.uName.disabled = true; dom.saveName.style.display='none';
+                dom.uCode.value = myCode; dom.uCode.disabled = true; dom.resetCode.style.display='block';
+                dom.nameStat.textContent = `Nama: ${myName}`; dom.codeStat.textContent = `ID: ${myCode}`;
+                const snap = await get(ref(db, `users/${myCode}`));
+                if(snap.exists() && snap.val().ntfyTopic) dom.ntfyIn.value = snap.val().ntfyTopic;
+                listenConn(myCode);
+            } else {
+                dom.nameStat.textContent = "1. Masukkan nama, tekan simpan.";
+                dom.saveName.style.display = 'block'; dom.uCode.disabled = true;
+                dom.saveName.onclick = () => {
+                    if(dom.uName.value.trim()){
+                        localStorage.setItem('myName', dom.uName.value.trim());
+                        dom.uName.disabled=true; dom.saveName.style.display='none';
+                        dom.uCode.disabled=false; dom.codeStat.textContent="2. Masukkan 6 digit ID."; dom.uCode.focus();
+                    }
+                };
+                dom.uCode.oninput = async (e) => {
+                    const c = e.target.value.trim();
+                    if(!/^\d{6}$/.test(c)) return;
+                    if((await get(ref(db, `users/${c}`))).exists()) { dom.codeStat.textContent="ID terpakai."; }
+                    else {
+                        await set(ref(db, `users/${c}`), {name: localStorage.getItem('myName'), createdAt: Date.now()});
+                        localStorage.setItem('myCode', c);
+                        showGlobalToast("Identitas disimpan! Restarting...");
+                        setTimeout(()=>location.reload(), 1000);
+                    }
+                };
+            }
+        };
+
+        const listenConn = (code) => {
+            onValue(ref(db, `connections/${code}`), async (snap) => {
+                const s = snap.val() || {};
+                if(s.partner) {
+                    dom.accCode.value = s.partner; dom.accCode.disabled=true;
+                    dom.partStat.textContent = "Tersambung.";
+                    dom.linkBtn.style.display='none'; dom.cancReq.style.display='none'; dom.discBtn.style.display='block';
+                } else if(s.requestTo) {
+                    dom.accCode.value = ''; dom.accCode.disabled=true;
+                    dom.partStat.textContent = `Menunggu ${s.requestTo}...`;
+                    dom.linkBtn.style.display='none'; dom.cancReq.style.display='block'; dom.discBtn.style.display='none';
+                } else {
+                    dom.accCode.value = ''; dom.accCode.disabled=false; dom.partStat.textContent='';
+                    dom.linkBtn.style.display='block'; dom.cancReq.style.display='none'; dom.discBtn.style.display='none';
+                }
+            });
+        };
+
+        dom.linkBtn.onclick = async () => {
+            const p = dom.accCode.value.trim();
+            if(!myCode || !p || p===myCode) return showGlobalToast("Invalid ID");
+            if(!(await get(ref(db, `users/${p}`))).exists()) return showGlobalToast("ID tidak ditemukan");
+            await update(ref(db), { [`connections/${p}/requestFrom`]: myCode, [`connections/${myCode}/requestTo`]: p });
+            showGlobalToast("Permintaan terkirim.");
+        };
+        dom.cancReq.onclick = async () => {
+            const p = (await get(ref(db, `connections/${myCode}/requestTo`))).val();
+            if(p) await update(ref(db), { [`connections/${p}/requestFrom`]: null, [`connections/${myCode}/requestTo`]: null });
+        };
+        dom.discBtn.onclick = () => showConf("Putuskan koneksi?", async () => {
+            const p = localStorage.getItem('accompliceCode');
+            if(p) await update(ref(db), { [`connections/${myCode}/partner`]: null, [`connections/${p}/partner`]: null });
+        });
+        dom.resetCode.onclick = () => showConf("Hapus identitas & restart?", async () => {
+            const p = localStorage.getItem('accompliceCode');
+            const upd = {}; upd[`users/${myCode}`]=null; upd[`connections/${myCode}`]=null;
+            if(p) upd[`connections/${p}/partner`]=null;
+            await update(ref(db), upd);
+            localStorage.clear(); location.reload();
+        });
+        dom.clearData.onclick = () => showConf("HAPUS PERMANEN SEMUA DATA?", async () => {
+            dom.resetCode.click();
+        });
+        dom.saveNtfy.onclick = async () => {
+            if(!myCode) return;
+            await update(ref(db, `users/${myCode}`), { ntfyTopic: dom.ntfyIn.value.trim() || null });
+            showGlobalToast("Topik Ntfy disimpan.");
+        };
+        
+        dom.presIn.value = JSON.parse(localStorage.getItem('customPresets')||'[]').join(', ');
+        dom.savePres.onclick = () => {
+            const p = dom.presIn.value.split(',').map(x=>x.trim()).filter(Boolean);
+            if(p.length) { localStorage.setItem('customPresets', JSON.stringify(p)); showGlobalToast("Preset disimpan!"); }
+        };
+        dom.clearPres.onclick = () => { localStorage.removeItem('customPresets'); dom.presIn.value=''; showGlobalToast("Dihapus!"); };
+
+        setupUI();
+    }
+
+    // --- 5. RECEIVER INIT ---
+    function initReceiver() {
+        const myCode = localStorage.getItem('myCode');
+        const accCode = localStorage.getItem('accompliceCode');
+        const textDisplay = document.getElementById("rec-mainText");
+        const ttsBtn = document.getElementById("ttsButton");
+        
+        if (!myCode || !accCode) { showGlobalToast("Tidak ada sesi."); navigate('view-main'); return; }
+
+        let isTtsEnabled = false;
+        const sOn = `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+        const sOff = `<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L7 9.02v.02L12 4z"/></svg>`;
+        
+        const updateTts = () => { ttsBtn.innerHTML = isTtsEnabled ? sOn : sOff; ttsBtn.style.opacity = isTtsEnabled?1:0.4; };
+        ttsBtn.onclick = () => { 
+            isTtsEnabled = !isTtsEnabled; updateTts(); 
+            if(window.speechSynthesis){
+                speechSynthesis.cancel();
+                if(isTtsEnabled) speechSynthesis.speak(new SpeechSynthesisUtterance("Voice On"));
+            }
+        };
+        updateTts();
+
+        const myStatusRef = ref(db, `status/${myCode}`);
+        set(myStatusRef, 'receiver');
+        
+        const unsubData = onValue(ref(db, `data/${myCode}`), (snap) => {
+            const val = snap.val();
+            if(val) {
+                const combined = [val.text, val.number, val.calc].filter(Boolean).join(" • ");
+                if(combined) {
+                    textDisplay.textContent = combined; textDisplay.className = "active-text";
+                    if(isTtsEnabled && window.speechSynthesis) {
+                        speechSynthesis.cancel();
+                        const u = new SpeechSynthesisUtterance(combined); u.lang='id-ID';
+                        speechSynthesis.speak(u);
+                    }
+                }
+                remove(ref(db, `data/${myCode}`));
+            }
+        });
+
+        document.getElementById('rec-clearButton').onclick = () => {
+            textDisplay.textContent = "Menunggu Data..."; textDisplay.className="breathing";
+        };
+
+        cleanupFunc = () => {
+            unsubData();
+            remove(myStatusRef);
+            if(window.speechSynthesis) speechSynthesis.cancel();
+        };
+    }
+
+    // --- 6. SENDER INIT ---
+    function initSender() {
+        const myCode = localStorage.getItem('myCode');
+        const accCode = localStorage.getItem('accompliceCode');
+        if(!myCode || !accCode) return navigate('view-main');
+
+        let sendMode = 'firebase'; let ntfyTopic = null;
+        const btnToggle = document.getElementById('std-sendModeToggleBtn');
+        const tIn = document.getElementById('std-textInput');
+        const cDisp = document.getElementById('std-calcDisplay');
+
+        set(ref(db, `status/${myCode}`), 'sender');
+        cleanupFunc = () => remove(ref(db, `status/${myCode}`));
+
+        get(ref(db, `users/${myCode}`)).then(snap => {
+            if(snap.exists()) ntfyTopic = snap.val().ntfyTopic;
+            btnToggle.disabled = false;
+            updateModeUI();
+        });
+
+        const updateModeUI = () => {
+            if(sendMode==='firebase'){ btnToggle.textContent="Ganti Mode: Kirim ke Ntfy"; btnToggle.className="api-btn mode-ntfy"; }
+            else { btnToggle.textContent="Ganti Mode: Kirim ke Receiver"; btnToggle.className="api-btn mode-firebase"; }
+        };
+        btnToggle.onclick = () => {
+            if(sendMode==='firebase') {
+                if(ntfyTopic) { sendMode='ntfy'; showGlobalToast("Mode Ntfy."); }
+                else showGlobalToast("Topik Ntfy belum disetting.");
+            } else { sendMode='firebase'; showGlobalToast("Mode Receiver."); }
+            updateModeUI();
+        };
+
+        const doSend = async (type, val) => {
+            if(sendMode==='firebase') {
+                await set(ref(db, `data/${accCode}/${type}`), val); showGlobalToast(`Terkirim: ${val}`);
+            } else if(sendMode==='ntfy' && ntfyTopic) {
+                await fetch(`https://ntfy.sh/${ntfyTopic}`, {method:'POST', body:`[${type.toUpperCase()}] ${val}`, headers:{'Title':'Obscura'}});
+                showGlobalToast(`Via Ntfy: ${val}`);
+            }
+        };
+
+        tIn.onkeydown = (e) => { if(e.key==='Enter' && tIn.value.trim()){ doSend('text', tIn.value); tIn.value=''; } };
+
+        const np = document.getElementById('std-numpad'); np.innerHTML='';
+        [1,2,3,4,5,6,7,8,9,0].forEach(n => {
+            const b=document.createElement('button'); b.className='grid-btn'; b.textContent=n;
+            b.onclick=()=>doSend('number',n); np.appendChild(b);
+        });
+
+        let expr = ""; const ck = document.getElementById('std-calcKeys'); ck.innerHTML='';
+        ['7','8','9','/','4','5','6','*','1','2','3','-','0','>','=','+'].forEach(k => {
+            const b=document.createElement('button'); b.className='grid-btn'; b.textContent=k;
+            b.onclick = () => {
+                if(k==='>') expr=expr.slice(0,-1);
+                else if(k==='=') {
+                    try{
+                        if(/^\d+$/.test(expr)) {
+                            const c = parseInt(expr); doSend('text', kartuMapFull[c]||`Kode ${c}`);
+                        } else {
+                            let res = new Function('return '+expr.replace(/[^-()\d/*+.]/g,''))();
+                            if(typeof res==='number') res=Math.round(res*1000)/1000;
+                            doSend('calc', res);
+                        }
+                    }catch{ cDisp.textContent='Err'; }
+                    expr="";
+                } else expr+=k;
+                cDisp.textContent=expr;
+            };
+            ck.appendChild(b);
+        });
+
+        const cp = document.getElementById('std-customPresetArea'); cp.innerHTML='';
+        JSON.parse(localStorage.getItem('customPresets')||'[]').forEach(p => {
+            const b=document.createElement('button'); b.className='grid-btn'; b.textContent=p; b.style.fontSize='14px';
+            b.onclick=()=>doSend('text', p); cp.appendChild(b);
+        });
+    }
+
+    // --- 7. THUMPER INIT ---
+    let thStream = null, thTimer = null;
+    function initThumper() {
+        const myCode = localStorage.getItem('myCode');
+        const accCode = localStorage.getItem('accompliceCode');
+        if(!myCode || !accCode) return navigate('view-main');
+
+        set(ref(db, `status/${myCode}`), 'sender');
+        const vDisg = document.getElementById('th-view-disguise');
+        const vSend = document.getElementById('th-view-sender');
+
+        const doSend = (t, v, autoReturn=false) => {
+            set(ref(db, `data/${accCode}/${t}`), v);
+            const pop = document.getElementById('th-popup'); pop.textContent=`'${v}' terkirim`;
+            pop.classList.remove('opacity-0'); setTimeout(()=>pop.classList.add('opacity-0'), 1500);
+            if(autoReturn) setTimeout(showCam, 400);
+        };
+
+        const showSend = () => { document.body.classList.remove('no-scroll'); vDisg.style.display='none'; vSend.style.display='flex'; stopCam(); };
+        const showCam = () => { document.body.classList.add('no-scroll'); vSend.style.display='none'; vDisg.style.display='flex'; startCam(); };
+
+        document.getElementById('th-record-btn').onclick = showSend;
+        document.getElementById('th-back-btn').onclick = showCam;
+
+        // Populate presets
+        const ms = document.getElementById('th-mode-selector'); ms.innerHTML='';
+        ['VIDEO','PHOTO','PORTRAIT', ...JSON.parse(localStorage.getItem('customPresets')||'[]')].forEach(m => {
+            const b=document.createElement('button'); b.textContent=m; b.className='inline-block mx-3 py-1 text-xs font-semibold text-gray-300';
+            b.onclick=()=>{ 
+                ms.querySelectorAll('button').forEach(x=>x.classList.replace('text-yellow-400','text-gray-300'));
+                b.classList.replace('text-gray-300','text-yellow-400');
+                if(!['VIDEO','PHOTO','PORTRAIT'].includes(m)) doSend('text',m,false);
+            };
+            ms.appendChild(b);
+        });
+
+        // Builder sender keys
+        const tIn=document.getElementById('th-text-input');
+        tIn.onkeydown=(e)=>{if(e.key==='Enter'&&tIn.value.trim()){doSend('text',tIn.value,true); tIn.value='';}};
+        
+        const np=document.getElementById('th-numpad'); np.innerHTML='';
+        [1,2,3,4,5,6,7,8,9,0].forEach(n=>{
+            const b=document.createElement('button'); b.textContent=n; b.className='py-4 bg-white/5 rounded-lg text-xl cardo-font';
+            b.onclick=()=>doSend('number',n,true); np.appendChild(b);
+        });
+
+        let expr=""; const ck=document.getElementById('th-calc-keys'); const cDisp=document.getElementById('th-calc-display'); ck.innerHTML='';
+        ['7','8','9','/','4','5','6','*','1','2','3','-','0','>','=','+'].forEach(k=>{
+            const b=document.createElement('button'); b.textContent=k; b.className='py-4 bg-white/5 rounded-lg text-xl cardo-font';
+            b.onclick=()=>{
+                if(k==='>') expr=expr.slice(0,-1);
+                else if(k==='='){
+                    try{
+                        if(/^\d+$/.test(expr)){ const c=parseInt(expr); doSend('text', kartuMapFull[c]||`Kode ${c}`, true); }
+                        else{ let res=new Function('return '+expr.replace(/[^-()\d/*+.]/g,''))(); doSend('calc',res,true); }
+                    }catch{ cDisp.textContent='Err'; }
+                    expr="";
+                } else expr+=k;
+                cDisp.textContent=expr;
+            }; ck.appendChild(b);
+        });
+        
+        const cp = document.getElementById('th-custom-preset'); cp.innerHTML='';
+        const pres = JSON.parse(localStorage.getItem('customPresets')||'[]');
+        if(pres.length) {
+            document.getElementById('th-custom-section').classList.remove('hidden');
+            pres.forEach(p=>{
+                const b=document.createElement('button'); b.textContent=p; b.className='py-4 bg-white/5 rounded-lg text-base truncate cardo-font';
+                b.onclick=()=>doSend('text',p,true); cp.appendChild(b);
+            });
+        }
+
+        async function startCam(){
+            if(thStream) return;
+            try{ thStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); document.getElementById('th-camera-feed').srcObject=thStream;}catch{}
+            if(!thTimer){
+                let s=0; thTimer = setInterval(()=>{
+                    s++; document.getElementById('th-timer-display').textContent=`${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+                }, 1000);
+            }
+        }
+        function stopCam(){
+            if(thStream){ thStream.getTracks().forEach(t=>t.stop()); thStream=null; }
+            if(thTimer){ clearInterval(thTimer); thTimer=null; }
+        }
+
+        showCam();
+        cleanupFunc = () => { stopCam(); remove(ref(db, `status/${myCode}`)); };
+    }
+
+    // --- 8. GUEST INIT ---
+    let guStream = null, guTimer = null;
+    async function initGuest() {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const viewType = params.get('view') || 'simple';
+        const ntfy = params.get('ntfy');
+        
+        const statMsg = document.getElementById('gu-status-message');
+        const statCont = document.getElementById('gu-status-container');
+        
+        if(!token) return navigate('view-splash'); // Fallback if no token
+
+        try {
+            const snap = await get(ref(db, `guestTokens/${token}`));
+            if(!snap.exists()) { statMsg.textContent="Link kadaluarsa/salah."; return; }
+            const hostId = snap.val().hostId;
+            await remove(ref(db, `guestTokens/${token}`));
+
+            const gRef = ref(db, `guestConnections/${hostId}`);
+            set(gRef, { connectedAt: Date.now(), view: viewType });
+            onDisconnect(gRef).remove();
+
+            statCont.style.display='none';
+
+            const doSend = async (t, v) => {
+                try{ await set(ref(db, `data/${hostId}/${t}`), v); }catch{}
+                if(ntfy) try{ await fetch(`https://ntfy.sh/${ntfy}`, {method:'POST', body:`[${t.toUpperCase()}] ${v}`, headers:{'Title':'Pesan Obscura'}}); }catch{}
+                return true;
+            };
+
+            const buildCalc = (kCont, dCont, sendCb, isDisguise) => {
+                let expr=""; kCont.innerHTML='';
+                ['7','8','9','/','4','5','6','*','1','2','3','-','0','⌫','=','+'].forEach(k=>{
+                    const b=document.createElement('button'); b.textContent=k;
+                    b.className = isDisguise ? "py-4 bg-white/5 rounded-lg text-xl cardo-font" : "p-4 bg-white/5 rounded-lg text-xl";
+                    b.onclick=()=>{
+                        if(k==='⌫') expr=expr.slice(0,-1);
+                        else if(k==='='){
+                            try{
+                                if(/^\d+$/.test(expr)){ const c=parseInt(expr); if(c>=1 && c<=52) sendCb('text', kartuMapShort[c-1]); else sendCb('text', res); }
+                                else{ let res=new Function('return '+expr.replace(/[^-()\d/*+.]/g,''))(); sendCb('text', String(res)); }
+                            }catch{} expr="";
+                        } else expr+=k;
+                        dCont.textContent=expr||"0";
+                    }; kCont.appendChild(b);
+                });
+            };
+
+            if(viewType==='simple') {
+                document.getElementById('gu-view-simple').style.display='block';
+                const ti = document.getElementById('gu-simple-text');
+                ti.onkeydown=(e)=>{if(e.key==='Enter'&&ti.value.trim()){doSend('text',ti.value); ti.value='';}};
+                const np = document.getElementById('gu-simple-numpad'); np.innerHTML='';
+                [1,2,3,4,5,6,7,8,9,0].forEach(n=>{
+                    const b=document.createElement('button'); b.textContent=n; b.className='p-4 bg-white/5 rounded-lg text-xl';
+                    b.onclick=()=>doSend('number',n); np.appendChild(b);
+                });
+                buildCalc(document.getElementById('gu-simple-calc-keys'), document.getElementById('gu-simple-calc-display'), doSend, false);
+            } else {
+                document.getElementById('gu-view-disguise-wrapper').style.display='block';
+                const vDisg = document.getElementById('gu-view-disguise'); const vSend = document.getElementById('gu-view-sender');
+                
+                const showNotif = (m) => { const p=document.getElementById('gu-popup'); p.textContent=m; p.classList.remove('opacity-0'); setTimeout(()=>p.classList.add('opacity-0'),1500); };
+                const showCam = () => { document.body.classList.add('no-scroll'); vSend.style.display='none'; vDisg.style.display='flex'; startCam(); };
+                const showSend = () => { document.body.classList.remove('no-scroll'); vDisg.style.display='none'; vSend.style.display='flex'; stopCam(); };
+                
+                document.getElementById('gu-record-btn').onclick = showSend; document.getElementById('gu-back-btn').onclick = showCam;
+
+                const ti = document.getElementById('gu-disguise-text');
+                ti.onkeydown=(e)=>{if(e.key==='Enter'&&ti.value.trim()){doSend('text',ti.value); showNotif('Terkirim'); setTimeout(showCam,400); ti.value='';}};
+                
+                const np = document.getElementById('gu-disguise-numpad'); np.innerHTML='';
+                [1,2,3,4,5,6,7,8,9,0].forEach(n=>{
+                    const b=document.createElement('button'); b.textContent=n; b.className='py-4 bg-white/5 rounded-lg text-xl cardo-font';
+                    b.onclick=()=>{doSend('number',n); showNotif('Terkirim'); setTimeout(showCam,400);}; np.appendChild(b);
+                });
+
+                buildCalc(document.getElementById('gu-disguise-calc-keys'), document.getElementById('gu-disguise-calc-display'), (t,v)=>{doSend(t,v); showNotif('Terkirim'); setTimeout(showCam,400);}, true);
+
+                async function startCam(){
+                    if(guStream) return;
+                    try{ guStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); document.getElementById('gu-camera-feed').srcObject=guStream;}catch{}
+                    if(!guTimer){
+                        let s=0; guTimer = setInterval(()=>{
+                            s++; document.getElementById('gu-timer-display').textContent=`${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+                        }, 1000);
+                    }
+                }
+                function stopCam(){
+                    if(guStream){ guStream.getTracks().forEach(t=>t.stop()); guStream=null; }
+                    if(guTimer){ clearInterval(guTimer); guTimer=null; }
+                }
+                showCam();
+                cleanupFunc = () => { stopCam(); remove(gRef); };
+            }
+
+        } catch(err) { statMsg.textContent="Gagal jaringan."; }
+    }
+
+    // --- BOOTSTRAPPER ---
+    window.addEventListener('pageshow', (e) => { if (e.persisted) window.location.reload(); });
+    
+    // Check if ?token exists, if so immediately route to guest
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('token')) {
+        navigate('view-guest');
+    } else {
+        navigate('view-splash');
+    }
+
+  </script>
+</body>
+</html>
