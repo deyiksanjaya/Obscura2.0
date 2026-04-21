@@ -1,10 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   
-  <!-- Memaksa bar atas menjadi hitam pekat -->
   <meta name="theme-color" content="#000000">
   <meta name="background-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,31 +24,35 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* GLOBAL STYLES */
+    /* GLOBAL STYLES & BULLETPROOF FULLSCREEN RESET */
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     html, body {
+      position: fixed; /* KUNCI UTAMA: Membunuh elastic scroll dan mengunci dimensi */
+      top: 0; left: 0; right: 0; bottom: 0;
       width: 100%; height: 100%;
       background-color: #000000;
-      background-image: radial-gradient(ellipse at center, #111 0%, #000 100%);
-      font-family: 'Cardo', serif; color: #e0e0e0;
+      font-family: 'Cardo', serif; 
+      color: #e0e0e0;
       overflow: hidden; 
       overscroll-behavior: none; 
       -webkit-tap-highlight-color: transparent;
+    }
+
+    .bg-gradient-main {
+      background: #000 radial-gradient(ellipse at center, #111 0%, #000 100%);
     }
     
     .cardo-font { font-family: 'Cardo', serif; }
     .inter-font { font-family: 'Inter', sans-serif; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .no-scroll { overflow: hidden !important; }
 
     /* VIEW MANAGEMENT */
     .app-view {
       display: none;
-      position: fixed; 
+      position: absolute; /* Jangkar absolut ke body yang sudah fixed */
       top: 0; left: 0; right: 0; bottom: 0;
-      width: 100%; height: 100%; 
-      height: 100dvh; 
       overflow-y: auto; overflow-x: hidden;
       z-index: 10;
     }
@@ -63,6 +67,10 @@
     }
     @keyframes fogMove { from { transform: translate(0, 0); } to { transform: translate(-50%, -50%); } }
 
+    /* SAFE AREA UTILITIES */
+    .safe-pt { padding-top: max(24px, env(safe-area-inset-top)); }
+    .safe-pb { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+
     /* --- SPLASH VIEW --- */
     #view-splash { z-index: 20; }
     .splash-container { height: 100%; width: 100%; display: grid; place-items: center; animation: pageFadeIn 1s ease forwards; }
@@ -72,7 +80,7 @@
     .splash-title { font-size: clamp(3rem, 14vw, 4.5rem); letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; text-shadow: 0 0 8px rgba(255, 255, 255, 0.05); animation: titleIn 3.5s ease-out forwards; cursor: pointer; margin: 0; }
     .splash-subtitle { font-family: 'Cinzel', serif; color: #aaa; margin-top: 15px; letter-spacing: 1px; font-size: clamp(1rem, 4vw, 1.1rem); opacity: 0; transition: opacity 1.5s ease; pointer-events: none; }
     .splash-subtitle.visible { opacity: 1; }
-    .splash-fade-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; opacity: 0; z-index: 3; transition: opacity 1s ease; pointer-events: none; }
+    .splash-fade-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: black; opacity: 0; z-index: 3; transition: opacity 1s ease; pointer-events: none; }
     .paused .splash-title, .paused .splash-circle { animation-play-state: paused; }
     .fade-out { animation: fadeOut 1s forwards; }
     @keyframes pageFadeIn { from { opacity: 0 } to { opacity: 1 } }
@@ -93,7 +101,7 @@
     #statusMessage { margin-top: 20px; color: #dc3545; height: 20px; font-size: 0.9rem; z-index: 2; }
 
     /* --- MAIN MENU VIEW --- */
-    #view-main { flex-direction: column; animation: fadeIn 1.2s ease forwards; padding-top: max(24px, env(safe-area-inset-top)); }
+    #view-main { flex-direction: column; animation: fadeIn 1.2s ease forwards; }
     .menu-scroll { flex: 1; overflow-y: auto; padding: 40px 0; }
     .menu-column { display: flex; flex-direction: column; gap: 32px; align-items: center; width: 100%; position: relative; padding-bottom: 40px; }
     .menu-item { width: 90vw; max-width: 300px; aspect-ratio: 1 / 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; background: rgba(255, 255, 255, 0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; text-align: center; color: inherit; position: relative; box-shadow: 0 0 10px rgba(255, 255, 255, 0.02); }
@@ -105,7 +113,7 @@
     .info-badge { color: #999; font-size: 12px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 8px; }
     
     /* MODALS */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1002; opacity: 0; transition: opacity 0.3s ease; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1002; opacity: 0; transition: opacity 0.3s ease; }
     .modal-overlay.visible { display: flex; opacity: 1; }
     .modal-content { background: #1a1a1a; padding: 25px 30px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; box-shadow: 0 5px 25px rgba(0,0,0,0.5); width: 90%; max-width: 400px; font-family: 'Cardo', serif; }
     .modal-title { font-size: 1.2em; margin-top: 0; margin-bottom: 20px; color: #e0e0e0; }
@@ -141,7 +149,6 @@
     #ttsButton.disabled svg { opacity: 0.4; }
 
     /* --- SENDER VIEW (Standard) --- */
-    #view-sender { padding-top: max(24px, env(safe-area-inset-top)); }
     .sender-section { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 20px 0; }
     .sender-h2 { font-size: 18px; color: #aaa; margin-bottom: 15px; font-weight: 400; }
     .sender-input { width: 100%; padding: 12px; font-size: 16px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: #eee; text-align: center; font-family: 'Cardo', serif;}
@@ -154,14 +161,21 @@
     .mode-ntfy { background-color: #2a755a; }
 
     /* GLOBAL TOAST / POPUP */
-    .global-toast { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2); padding: 12px 25px; border-radius: 8px; font-family: 'Cardo', serif; font-size: 16px; color: #e0e0e0; box-shadow: 0 4px 20px rgba(0, 0, 0, .6); backdrop-filter: blur(5px); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .5s ease; text-align: center; }
+    .global-toast { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2); padding: 12px 25px; border-radius: 8px; font-family: 'Cardo', serif; font-size: 16px; color: #e0e0e0; box-shadow: 0 4px 20px rgba(0, 0, 0, .6); backdrop-filter: blur(5px); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .5s ease; text-align: center; width: max-content; max-width: 90vw;}
     .global-toast.show { opacity: 1; }
 
     /* UTILITY */
     .back-nav { display: block; padding: 12px; background-color: rgba(255,255,255,0.05); color: #ddd; text-align: center; border-radius: 8px; margin-bottom: 20px; text-decoration: none; cursor: pointer; font-family: 'Cardo', serif; border: 1px solid rgba(255,255,255,0.1); }
   </style>
 </head>
-<body class="bg-black"> 
+<body> 
+
+  <!-- Registrasi PWA Service Worker Opsional (Abaikan jika file sw.js belum dibuat) -->
+  <script>
+      if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+      }
+  </script>
 
   <!-- FOG ANIMATION -->
   <div class="fog" id="global-fog"></div>
@@ -169,7 +183,7 @@
   <!-- ========================================== -->
   <!-- 1. SPLASH VIEW                             -->
   <!-- ========================================== -->
-  <div id="view-splash" class="app-view active-view">
+  <div id="view-splash" class="app-view active-view bg-gradient-main">
     <div class="splash-container" id="intro">
       <div class="splash-circle"></div>
       <div class="splash-wrapper">
@@ -183,7 +197,7 @@
   <!-- ========================================== -->
   <!-- 2. ACCESS VIEW (LOGIN)                     -->
   <!-- ========================================== -->
-  <div id="view-access" class="app-view flex-view">
+  <div id="view-access" class="app-view flex-view bg-gradient-main">
     <div class="access-content">
       <div class="access-circle"></div>
       <h1 class="access-title">OBSCURA</h1>
@@ -197,7 +211,7 @@
   <!-- ========================================== -->
   <!-- 3. MAIN MENU DASHBOARD                     -->
   <!-- ========================================== -->
-  <div id="view-main" class="app-view flex-view">
+  <div id="view-main" class="app-view flex-view bg-gradient-main safe-pt">
     <div class="top-info">
       <div id="userCodeDisplay" class="info-badge"></div>
       <div id="connectionInfo" class="info-badge" style="text-align: right;"></div>
@@ -275,8 +289,8 @@
   <!-- ========================================== -->
   <!-- 4. API / SETTINGS VIEW                     -->
   <!-- ========================================== -->
-  <div id="view-api" class="app-view">
-    <div style="padding: 24px; padding-top: max(24px, env(safe-area-inset-top));">
+  <div id="view-api" class="app-view bg-gradient-main">
+    <div style="padding: 24px;" class="safe-pt">
         <div class="back-nav btn-nav-main">← Kembali ke Menu</div>
         
         <section class="api-section">
@@ -332,7 +346,7 @@
   <!-- ========================================== -->
   <!-- 5. RECEIVER VIEW                           -->
   <!-- ========================================== -->
-  <div id="view-receiver" class="app-view flex-view">
+  <div id="view-receiver" class="app-view flex-view bg-gradient-main">
     <div class="back-nav btn-nav-main top-button" style="left:16px; position:fixed; margin:0; padding:8px 14px;">← Kembali</div>
     <button id="rec-clearButton" class="top-button" style="right:16px;">Clear Display</button>
     <div class="receiver-wrapper">
@@ -344,7 +358,7 @@
   <!-- ========================================== -->
   <!-- 6. STANDARD SENDER VIEW                    -->
   <!-- ========================================== -->
-  <div id="view-sender" class="app-view">
+  <div id="view-sender" class="app-view bg-gradient-main safe-pt">
     <div style="padding: 24px;">
         <div class="back-nav btn-nav-main">← Kembali ke Menu</div>
         <section class="sender-section">
@@ -374,13 +388,15 @@
   <!-- ========================================== -->
   <!-- 7. THUMPER CAMERA VIEW (DUAL MODE)         -->
   <!-- ========================================== -->
+  <!-- Menggunakan wrapper dengan bg-black dan inset-0 agar mutlak rata layar -->
   <div id="view-thumper" class="app-view bg-black">
     
     <!-- A. Camera Disguise -->
-    <div id="th-view-disguise" class="w-full h-full text-white flex flex-col justify-between items-center inter-font overflow-hidden relative">
-        <video id="th-camera-feed" autoplay playsinline muted class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
-        <div class="relative z-10 w-full h-full flex flex-col justify-between">
-            <div class="w-full bg-black/30 backdrop-blur-sm pb-2" style="padding-top: max(16px, env(safe-area-inset-top));">
+    <div id="th-view-disguise" class="absolute inset-0 text-white flex flex-col justify-between items-center inter-font overflow-hidden z-10">
+        <video id="th-camera-feed" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover z-0"></video>
+        
+        <div class="relative w-full h-full flex flex-col justify-between z-10">
+            <div class="w-full bg-black/30 backdrop-blur-sm pb-2 safe-pt">
                 <div class="w-full px-4 flex justify-between items-center text-white text-sm">
                     <div class="w-1/4 text-left"><img src="https://img.icons8.com/ios-filled/100/flash-off.png" class="w-6 h-6 brightness-0 invert" /></div>
                     <div class="w-1/2 text-center"><span id="th-timer-display" class="bg-red-600/80 rounded-md px-2 py-1 font-mono text-base">00:00:00</span></div>
@@ -388,7 +404,7 @@
                 </div>
             </div>
             <div class="flex-grow"></div>
-            <div class="w-full bg-black/30 backdrop-blur-sm" style="padding-bottom: max(16px, env(safe-area-inset-bottom));">
+            <div class="w-full bg-black/30 backdrop-blur-sm safe-pb">
                 <div class="flex flex-col items-center py-3 space-y-3">
                     <div id="th-mode-selector" class="w-full px-4 overflow-x-auto whitespace-nowrap text-center no-scrollbar"></div>
                     <div class="w-full px-4 flex justify-around items-center">
@@ -399,7 +415,6 @@
                         <button class="btn-nav-main text-gray-300 hover:text-white transition-colors p-2 rounded-full">
                             <img src="https://img.icons8.com/sf-regular/48/switch-camera.png" class="w-8 h-8 brightness-0 invert" />
                         </button>
-                        
                     </div>
                 </div>
             </div>
@@ -408,8 +423,9 @@
     </div>
 
     <!-- B. Hidden Sender Menu -->
-    <div id="th-view-sender" class="hidden w-full h-full text-gray-200 flex-col" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%);">
-        <div class="flex-1 p-6" id="th-sender-scroll" style="padding-top: max(24px, env(safe-area-inset-top));">
+    <!-- Dihidden via display: none. Background gradien independen agar tidak menembus -->
+    <div id="th-view-sender" class="hidden absolute inset-0 bg-gradient-main text-gray-200 overflow-y-auto safe-pt z-20">
+        <div class="p-6">
             <button id="th-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
             <section class="mb-8 pb-5 border-b border-white/10">
                 <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Teks</h2>
@@ -440,12 +456,12 @@
   <div id="view-guest" class="app-view bg-black">
       
       <!-- Loading State / Expired UI -->
-      <div id="gu-status-container" class="flex justify-center items-center h-full cardo-font text-xl text-gray-400 text-center px-4">
+      <div id="gu-status-container" class="absolute inset-0 flex justify-center items-center cardo-font text-xl text-gray-400 text-center px-4 bg-black z-30">
           <p id="gu-status-message">Menghubungkan...</p>
       </div>
 
       <!-- A. Simple Guest View -->
-      <div id="gu-view-simple" class="hidden w-full h-full p-6 box-border cardo-font" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(24px, env(safe-area-inset-top));">
+      <div id="gu-view-simple" class="hidden absolute inset-0 overflow-y-auto p-6 box-border cardo-font bg-gradient-main safe-pt z-20">
           <section class="mb-5 pb-5 border-b border-white/10">
               <h2 class="text-lg text-gray-400 mb-4 font-normal">Input Teks</h2>
               <input type="text" id="gu-simple-text" placeholder="Ketik lalu tekan Enter" class="w-full p-3 text-center bg-white/5 rounded-lg text-white border-none" />
@@ -462,12 +478,12 @@
       </div>
 
       <!-- B. Disguise Guest View -->
-      <div id="gu-view-disguise-wrapper" class="hidden w-full h-full">
+      <div id="gu-view-disguise-wrapper" class="hidden absolute inset-0 z-10">
           <!-- Camera Screen -->
-          <div id="gu-view-disguise" class="w-full h-full text-white flex flex-col justify-between items-center inter-font overflow-hidden relative">
-              <video id="gu-camera-feed" autoplay playsinline muted class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
-              <div class="relative z-10 w-full h-full flex flex-col justify-between">
-                  <div class="w-full bg-black/30 backdrop-blur-sm pb-2" style="padding-top: max(16px, env(safe-area-inset-top));">
+          <div id="gu-view-disguise" class="absolute inset-0 text-white flex flex-col justify-between items-center inter-font overflow-hidden z-10">
+              <video id="gu-camera-feed" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover z-0"></video>
+              <div class="relative w-full h-full flex flex-col justify-between z-10">
+                  <div class="w-full bg-black/30 backdrop-blur-sm pb-2 safe-pt">
                       <div class="w-full px-4 flex justify-between items-center text-white text-sm">
                           <div class="w-1/4 text-left"><img src="https://img.icons8.com/ios-filled/100/flash-off.png" class="w-6 h-6 brightness-0 invert" /></div>
                           <div class="w-1/2 text-center"><span id="gu-timer-display" class="bg-red-600/80 rounded-md px-2 py-1 font-mono text-base">00:00:00</span></div>
@@ -475,7 +491,7 @@
                       </div>
                   </div>
                   <div class="flex-grow"></div>
-                  <div class="w-full bg-black/30 backdrop-blur-sm flex justify-center items-center py-6" style="padding-bottom: max(16px, env(safe-area-inset-bottom));">
+                  <div class="w-full bg-black/30 backdrop-blur-sm flex justify-center items-center py-6 safe-pb">
                       <button id="gu-record-btn" class="w-20 h-20 bg-white rounded-full flex items-center justify-center transform transition active:scale-90"><div class="w-16 h-16 bg-red-500 rounded-full border-4 border-white"></div></button>
                   </div>
               </div>
@@ -483,21 +499,23 @@
           </div>
           
           <!-- Hidden Sender Screen -->
-          <div id="gu-view-sender" class="hidden w-full h-full text-gray-200 flex-col p-6" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(24px, env(safe-area-inset-top));">
-              <button id="gu-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
-              <section class="mb-8 pb-5 border-b border-white/10">
-                  <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Teks</h2>
-                  <input type="text" id="gu-disguise-text" placeholder="Ketik dan tekan Enter" class="w-full p-3 text-center bg-white/5 rounded-lg cardo-font" />
-              </section>
-              <section class="mb-8 pb-5 border-b border-white/10">
-                  <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Angka Cepat</h2>
-                  <div id="gu-disguise-numpad" class="grid grid-cols-3 gap-3"></div>
-              </section>
-              <section>
-                  <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Kalkulator & Mnemonica</h2>
-                  <div id="gu-disguise-calc-display" class="h-14 mb-5 text-4xl text-center font-mono bg-white/5 rounded-lg flex items-center justify-center px-3 overflow-x-auto"></div>
-                  <div id="gu-disguise-calc-keys" class="grid grid-cols-4 gap-2"></div>
-              </section>
+          <div id="gu-view-sender" class="hidden absolute inset-0 bg-gradient-main text-gray-200 overflow-y-auto safe-pt z-20">
+              <div class="p-6">
+                <button id="gu-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
+                <section class="mb-8 pb-5 border-b border-white/10">
+                    <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Teks</h2>
+                    <input type="text" id="gu-disguise-text" placeholder="Ketik dan tekan Enter" class="w-full p-3 text-center bg-white/5 rounded-lg cardo-font" />
+                </section>
+                <section class="mb-8 pb-5 border-b border-white/10">
+                    <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Angka Cepat</h2>
+                    <div id="gu-disguise-numpad" class="grid grid-cols-3 gap-3"></div>
+                </section>
+                <section>
+                    <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Kalkulator & Mnemonica</h2>
+                    <div id="gu-disguise-calc-display" class="h-14 mb-5 text-4xl text-center font-mono bg-white/5 rounded-lg flex items-center justify-center px-3 overflow-x-auto"></div>
+                    <div id="gu-disguise-calc-keys" class="grid grid-cols-4 gap-2"></div>
+                </section>
+              </div>
           </div>
       </div>
   </div>
@@ -506,8 +524,7 @@
 
   <!-- MAIN SCRIPT MODULE -->
   <script type="module">
-    
-        // Registrasi Service Worker untuk PWA
+  // Registrasi Service Worker untuk PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(err => {
@@ -515,10 +532,11 @@
         });
       });
     }
+  
+  
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getDatabase, ref, get, set, remove, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
       apiKey: "AIzaSyDagbp2KWMuueh-ZmFZQ-nSAnRcummUgkM",
       authDomain: "obscurabyheri.firebaseapp.com",
@@ -531,7 +549,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // --- GLOBAL VARIABLES & UTILS ---
     let currentViewId = null;
     let cleanupFunc = null; 
     const fog = document.getElementById('global-fog');
@@ -546,7 +563,6 @@
         setTimeout(() => t.classList.remove('show'), duration);
     }
 
-    // FUNGSI FULLSCREEN NATIVE
     function enterFullScreen() {
         if (!document.fullscreenElement) {
             if (document.documentElement.requestFullscreen) {
@@ -562,7 +578,6 @@
     document.addEventListener('click', enterFullScreen, { once: true });
     document.addEventListener('touchstart', enterFullScreen, { once: true });
 
-    // --- CORE ROUTER ---
     function navigate(targetViewId) {
         const authRequired = ['view-main', 'view-api', 'view-receiver', 'view-sender', 'view-thumper'];
         const isAuthorized = localStorage.getItem('obscura_authorized') === 'true';
@@ -576,6 +591,7 @@
         const target = document.getElementById(targetViewId);
         if (target) {
             target.classList.add('active-view');
+            // Logika tampilan fog ditarik ke sini
             if(targetViewId === 'view-thumper' || targetViewId === 'view-guest') {
                 fog.style.display = 'none';
             } else {
@@ -692,7 +708,6 @@
         const btnThumper = document.getElementById('btn-nav-thumper');
         const btnApi = document.getElementById('btn-nav-api');
 
-        // Navigasi langsung diizinkan, kelas disable akan dihapus
         btnReceiver.onclick = () => { enterFullScreen(); navigate('view-receiver'); };
         btnSender.onclick = () => { enterFullScreen(); navigate('view-sender'); };
         btnThumper.onclick = () => { enterFullScreen(); navigate('view-thumper'); };
@@ -720,7 +735,6 @@
             guestActionBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
             guestActionBtn.onclick = () => document.getElementById('viewChoiceModal').classList.add('visible');
             
-            // SEMUA MENU SENDER/RECEIVER DIBUKA MURNI WALAUPUN TIDAK ADA KONEKSI
             btnReceiver.classList.remove('disabled');
             btnSender.classList.remove('disabled');
             btnThumper.classList.remove('disabled');
@@ -1126,7 +1140,6 @@
         
         if(!myCode) return navigate('view-main');
 
-        // TAMBAHKAN PERINGATAN KETIKA THUMPER DIBUKA TANPA PARTNER/TAMU
         if (!accCode) {
             setTimeout(() => {
                 showGlobalToast("Peringatan: Hubungkan ke partner atau buat link tamu terlebih dahulu.", 4000);
@@ -1148,8 +1161,16 @@
             if(autoReturn) setTimeout(showCam, 400);
         };
 
-        const showSend = () => { document.body.classList.remove('no-scroll'); vDisg.style.display='none'; vSend.style.display='flex'; stopCam(); };
-        const showCam = () => { document.body.classList.add('no-scroll'); vSend.style.display='none'; vDisg.style.display='flex'; startCam(); };
+        const showSend = () => { 
+            vDisg.style.display='none'; 
+            vSend.style.display='flex'; 
+            stopCam(); 
+        };
+        const showCam = () => { 
+            vSend.style.display='none'; 
+            vDisg.style.display='flex'; 
+            startCam(); 
+        };
 
         document.getElementById('th-record-btn').onclick = showSend;
         document.getElementById('th-back-btn').onclick = showCam;
@@ -1318,8 +1339,8 @@
                 const vDisg = document.getElementById('gu-view-disguise'); const vSend = document.getElementById('gu-view-sender');
                 
                 const showNotif = (m) => { const p=document.getElementById('gu-popup'); p.textContent=m; p.classList.remove('opacity-0'); setTimeout(()=>p.classList.add('opacity-0'),1500); };
-                const showCam = () => { document.body.classList.add('no-scroll'); vSend.style.display='none'; vDisg.style.display='flex'; startCam(); };
-                const showSend = () => { document.body.classList.remove('no-scroll'); vDisg.style.display='none'; vSend.style.display='flex'; stopCam(); };
+                const showCam = () => { vSend.style.display='none'; vDisg.style.display='flex'; startCam(); };
+                const showSend = () => { vDisg.style.display='none'; vSend.style.display='flex'; stopCam(); };
                 
                 document.getElementById('gu-record-btn').onclick = showSend; document.getElementById('gu-back-btn').onclick = showCam;
 
