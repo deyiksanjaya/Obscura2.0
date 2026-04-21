@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  
+  <!-- Memaksa bar atas menjadi hitam pekat -->
   <meta name="theme-color" content="#000000">
+  <meta name="background-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="mobile-web-app-capable" content="yes">
+  
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -23,10 +27,9 @@
     /* GLOBAL STYLES */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      width: 100%;
-      height: 100vh;
-      height: 100dvh; /* Dynamic viewport untuk mobile modern */
-      background: radial-gradient(ellipse at center, #111 0%, #000 100%);
+      width: 100%; height: 100%;
+      background-color: #000000;
+      background-image: radial-gradient(ellipse at center, #111 0%, #000 100%);
       font-family: 'Cardo', serif; color: #e0e0e0;
       overflow: hidden; 
       -webkit-tap-highlight-color: transparent;
@@ -41,9 +44,7 @@
     /* VIEW MANAGEMENT */
     .app-view {
       display: none;
-      width: 100%; 
-      height: 100vh;
-      height: 100dvh; /* Stretch to absolute edges */
+      width: 100%; height: 100%;
       position: absolute; top: 0; left: 0;
       overflow-y: auto; overflow-x: hidden;
       z-index: 10;
@@ -157,7 +158,7 @@
     .back-nav { display: block; padding: 12px; background-color: rgba(255,255,255,0.05); color: #ddd; text-align: center; border-radius: 8px; margin-bottom: 20px; text-decoration: none; cursor: pointer; font-family: 'Cardo', serif; border: 1px solid rgba(255,255,255,0.1); }
   </style>
 </head>
-<body>
+<body class="bg-black"> <!-- Memastikan background luar hitam -->
 
   <!-- FOG ANIMATION -->
   <div class="fog" id="global-fog"></div>
@@ -373,11 +374,9 @@
   <div id="view-thumper" class="app-view bg-black">
     
     <!-- A. Camera Disguise -->
-    <!-- Changed h-screen to absolute sizing to force notch coverage -->
-    <div id="th-view-disguise" class="w-full text-white flex flex-col justify-between items-center inter-font overflow-hidden relative" style="height: 100dvh;">
+    <div id="th-view-disguise" class="w-full h-full text-white flex flex-col justify-between items-center inter-font overflow-hidden relative">
         <video id="th-camera-feed" autoplay playsinline muted class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
         <div class="relative z-10 w-full h-full flex flex-col justify-between">
-            <!-- Safe area padding added here so the UI doesn't hit the notch -->
             <div class="w-full bg-black/30 backdrop-blur-sm pb-2" style="padding-top: max(1rem, env(safe-area-inset-top));">
                 <div class="w-full px-4 flex justify-between items-center text-white text-sm">
                     <div class="w-1/4 text-left"><img src="https://img.icons8.com/ios-filled/100/flash-off.png" class="w-6 h-6 brightness-0 invert" /></div>
@@ -392,10 +391,12 @@
                     <div class="w-full px-4 flex justify-around items-center">
                         <div class="w-12 h-12"></div>
                         <button id="th-record-btn" class="w-20 h-20 bg-white rounded-full flex items-center justify-center transform transition active:scale-90"><div class="w-16 h-16 bg-red-500 rounded-full border-4 border-white"></div></button>
-                        <!-- KEMBALI SEBAGAI TOMBOL PENYAMARAN -->
+                        
+                        <!-- BUTANG TUKAR KAMERA (DIKEMBALIKAN FUNGSI PENYAMARAN 'KEMBALI KE MENU') -->
                         <button class="btn-nav-main text-gray-300 hover:text-white transition-colors p-2 rounded-full">
                             <img src="https://img.icons8.com/sf-regular/48/switch-camera.png" class="w-8 h-8 brightness-0 invert" />
                         </button>
+                        
                     </div>
                 </div>
             </div>
@@ -404,7 +405,7 @@
     </div>
 
     <!-- B. Hidden Sender Menu -->
-    <div id="th-view-sender" class="hidden w-full text-gray-200 flex-col" style="min-height: 100dvh; background: radial-gradient(ellipse at center, #111 0%, #000 100%);">
+    <div id="th-view-sender" class="hidden w-full h-full text-gray-200 flex-col" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%);">
         <div class="flex-1 p-6" id="th-sender-scroll" style="padding-top: max(1.5rem, env(safe-area-inset-top));">
             <button id="th-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
             <section class="mb-8 pb-5 border-b border-white/10">
@@ -436,12 +437,12 @@
   <div id="view-guest" class="app-view bg-black">
       
       <!-- Loading State -->
-      <div id="gu-status-container" class="flex justify-center items-center cardo-font text-xl text-gray-400" style="height: 100dvh;">
+      <div id="gu-status-container" class="flex justify-center items-center h-full cardo-font text-xl text-gray-400">
           <p id="gu-status-message">Menghubungkan...</p>
       </div>
 
       <!-- A. Simple Guest View -->
-      <div id="gu-view-simple" class="hidden w-full p-6 box-border cardo-font" style="min-height: 100dvh; background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(1.5rem, env(safe-area-inset-top));">
+      <div id="gu-view-simple" class="hidden w-full h-full p-6 box-border cardo-font" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(1.5rem, env(safe-area-inset-top));">
           <section class="mb-5 pb-5 border-b border-white/10">
               <h2 class="text-lg text-gray-400 mb-4 font-normal">Input Teks</h2>
               <input type="text" id="gu-simple-text" placeholder="Ketik lalu tekan Enter" class="w-full p-3 text-center bg-white/5 rounded-lg text-white border-none" />
@@ -460,7 +461,7 @@
       <!-- B. Disguise Guest View -->
       <div id="gu-view-disguise-wrapper" class="hidden w-full h-full">
           <!-- Camera Screen -->
-          <div id="gu-view-disguise" class="w-full text-white flex flex-col justify-between items-center inter-font overflow-hidden relative" style="height: 100dvh;">
+          <div id="gu-view-disguise" class="w-full h-full text-white flex flex-col justify-between items-center inter-font overflow-hidden relative">
               <video id="gu-camera-feed" autoplay playsinline muted class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
               <div class="relative z-10 w-full h-full flex flex-col justify-between">
                   <div class="w-full bg-black/30 backdrop-blur-sm pb-2" style="padding-top: max(1rem, env(safe-area-inset-top));">
@@ -479,7 +480,7 @@
           </div>
           
           <!-- Hidden Sender Screen -->
-          <div id="gu-view-sender" class="hidden w-full text-gray-200 flex-col p-6" style="min-height: 100dvh; background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(1.5rem, env(safe-area-inset-top));">
+          <div id="gu-view-sender" class="hidden w-full h-full text-gray-200 flex-col p-6" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(1.5rem, env(safe-area-inset-top));">
               <button id="gu-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
               <section class="mb-8 pb-5 border-b border-white/10">
                   <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Teks</h2>
@@ -503,7 +504,7 @@
   <!-- MAIN SCRIPT MODULE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getDatabase, ref, get, set, remove, onValue, update, onDisconnect, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    import { getDatabase, ref, get, set, remove, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
     // --- FIREBASE CONFIG ---
     const firebaseConfig = {
@@ -533,7 +534,7 @@
         setTimeout(() => t.classList.remove('show'), duration);
     }
 
-    // FUNGSI FULLSCREEN BROWSER
+    // FUNGSI FULLSCREEN BROWSER NATIVE (API)
     function enterFullScreen() {
         if (!document.fullscreenElement) {
             if (document.documentElement.requestFullscreen) {
@@ -546,7 +547,6 @@
         }
     }
 
-    // Panggil fullscreen secara agresif pada tap/click pertama di layar
     document.addEventListener('click', enterFullScreen, { once: true });
     document.addEventListener('touchstart', enterFullScreen, { once: true });
 
@@ -565,10 +565,8 @@
         if (target) {
             target.classList.add('active-view');
             if(targetViewId === 'view-thumper' || targetViewId === 'view-guest') {
-                document.body.classList.add('bg-black');
                 fog.style.display = 'none';
             } else {
-                document.body.classList.remove('bg-black');
                 fog.style.display = 'block';
             }
         }
@@ -585,7 +583,6 @@
         else if (targetViewId === 'view-guest') initGuest();
     }
 
-    // Handle universal back buttons & fullscreen trigger
     document.querySelectorAll('.btn-nav-main').forEach(btn => {
         btn.addEventListener('click', () => {
             enterFullScreen();
@@ -619,7 +616,7 @@
                 intro.classList.add('paused');
                 subtitle.classList.add('visible');
                 title.addEventListener('click', () => {
-                    enterFullScreen(); // Trigger Fullscreen
+                    enterFullScreen();
                     subtitle.classList.remove('visible');
                     intro.classList.add('fade-out');
                     fadeLayer.style.opacity = 1;
@@ -638,7 +635,7 @@
         codeInput.value = ''; status.textContent = '';
         
         const handleAccess = async () => {
-            enterFullScreen(); // Trigger Fullscreen
+            enterFullScreen();
             const code = codeInput.value.trim().toUpperCase();
             if (!code) { status.textContent = "Kode tidak boleh kosong."; return; }
 
@@ -759,7 +756,6 @@
 
         updateMenuUI(null);
 
-        // Listeners
         const unsubRequest = onValue(ref(db, `connections/${myCode}/requestFrom`), async (snap) => {
             if (snap.exists() && !activePartner) {
                 const reqCode = snap.val();
@@ -803,7 +799,6 @@
 
         mainListeners.push(unsubRequest, unsubPartner, unsubGuest);
 
-        // Guest Link Gen
         const genLink = async (viewType, useNtfy) => {
             document.getElementById('viewChoiceModal').classList.remove('visible');
             const token = `GUEST-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -1128,7 +1123,6 @@
         document.getElementById('th-record-btn').onclick = showSend;
         document.getElementById('th-back-btn').onclick = showCam;
 
-        // Populate presets
         const ms = document.getElementById('th-mode-selector'); ms.innerHTML='';
         ['VIDEO','PHOTO','PORTRAIT', ...JSON.parse(localStorage.getItem('customPresets')||'[]')].forEach(m => {
             const b=document.createElement('button'); b.textContent=m; b.className='inline-block mx-3 py-1 text-xs font-semibold text-gray-300';
@@ -1140,7 +1134,6 @@
             ms.appendChild(b);
         });
 
-        // Builder sender keys
         const tIn=document.getElementById('th-text-input');
         tIn.onkeydown=(e)=>{if(e.key==='Enter'&&tIn.value.trim()){doSend('text',tIn.value,true); tIn.value='';}};
         
