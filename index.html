@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#000000">
   <meta name="background-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -32,6 +32,7 @@
       background-image: radial-gradient(ellipse at center, #111 0%, #000 100%);
       font-family: 'Cardo', serif; color: #e0e0e0;
       overflow: hidden; 
+      overscroll-behavior: none; /* Mencegah layar memantul (elastic scroll) yang bikin bocor */
       -webkit-tap-highlight-color: transparent;
     }
     
@@ -44,8 +45,10 @@
     /* VIEW MANAGEMENT */
     .app-view {
       display: none;
-      width: 100%; height: 100%;
-      position: absolute; top: 0; left: 0;
+      position: fixed; /* Berubah dari absolute ke fixed agar menempel erat di edge layar */
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%; 
+      height: 100dvh; /* Dynamic viewport */
       overflow-y: auto; overflow-x: hidden;
       z-index: 10;
     }
@@ -90,7 +93,8 @@
     #statusMessage { margin-top: 20px; color: #dc3545; height: 20px; font-size: 0.9rem; z-index: 2; }
 
     /* --- MAIN MENU VIEW --- */
-    #view-main { flex-direction: column; animation: fadeIn 1.2s ease forwards; padding-top: env(safe-area-inset-top); }
+    /* Memberi jarak atas minimal 24px atau seukuran poni layar (notch) */
+    #view-main { flex-direction: column; animation: fadeIn 1.2s ease forwards; padding-top: max(24px, env(safe-area-inset-top)); }
     .menu-scroll { flex: 1; overflow-y: auto; padding: 40px 0; }
     .menu-column { display: flex; flex-direction: column; gap: 32px; align-items: center; width: 100%; position: relative; padding-bottom: 40px; }
     .menu-item { width: 90vw; max-width: 300px; aspect-ratio: 1 / 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; background: rgba(255, 255, 255, 0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; text-align: center; color: inherit; position: relative; box-shadow: 0 0 10px rgba(255, 255, 255, 0.02); }
@@ -98,7 +102,7 @@
     .menu-item:not(.disabled):hover { background: rgba(255, 255, 255, 0.04); transform: scale(1.03); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
     .menu-item img { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.8; filter: invert(1); }
     .menu-item span { font-size: 16px; letter-spacing: 1px; }
-    .top-info { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
+    .top-info { position: absolute; top: max(20px, env(safe-area-inset-top)); left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; pointer-events: none; }
     .info-badge { color: #999; font-size: 12px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 8px; }
     
     /* MODALS */
@@ -131,14 +135,14 @@
     .active-text { font-size: 5vw; font-weight: bold; max-width: 90vw; opacity: 1; animation: textFadeIn 0.5s ease; }
     @keyframes textFadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     @keyframes breath { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
-    .top-button { position: fixed; top: max(16px, env(safe-area-inset-top)); padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 14px; z-index: 1000; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #e0e0e0; cursor: pointer; transition: background 0.3s ease; font-family: 'Cardo', serif;}
+    .top-button { position: fixed; top: max(20px, env(safe-area-inset-top)); padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 14px; z-index: 1000; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #e0e0e0; cursor: pointer; transition: background 0.3s ease; font-family: 'Cardo', serif;}
     .top-button:hover { background: rgba(255, 255, 255, 0.1); }
     #ttsButton { margin-top: 30px; padding: 12px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); cursor: pointer; }
     #ttsButton svg { width: 24px; height: 24px; fill: #e0e0e0; }
     #ttsButton.disabled svg { opacity: 0.4; }
 
     /* --- SENDER VIEW (Standard) --- */
-    #view-sender { padding-top: env(safe-area-inset-top); }
+    #view-sender { padding-top: max(24px, env(safe-area-inset-top)); }
     .sender-section { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 20px 0; }
     .sender-h2 { font-size: 18px; color: #aaa; margin-bottom: 15px; font-weight: 400; }
     .sender-input { width: 100%; padding: 12px; font-size: 16px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: #eee; text-align: center; font-family: 'Cardo', serif;}
@@ -151,14 +155,14 @@
     .mode-ntfy { background-color: #2a755a; }
 
     /* GLOBAL TOAST / POPUP */
-    .global-toast { position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2); padding: 12px 25px; border-radius: 8px; font-family: 'Cardo', serif; font-size: 16px; color: #e0e0e0; box-shadow: 0 4px 20px rgba(0, 0, 0, .6); backdrop-filter: blur(5px); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .5s ease; text-align: center; }
+    .global-toast { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2); padding: 12px 25px; border-radius: 8px; font-family: 'Cardo', serif; font-size: 16px; color: #e0e0e0; box-shadow: 0 4px 20px rgba(0, 0, 0, .6); backdrop-filter: blur(5px); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .5s ease; text-align: center; }
     .global-toast.show { opacity: 1; }
 
     /* UTILITY */
     .back-nav { display: block; padding: 12px; background-color: rgba(255,255,255,0.05); color: #ddd; text-align: center; border-radius: 8px; margin-bottom: 20px; text-decoration: none; cursor: pointer; font-family: 'Cardo', serif; border: 1px solid rgba(255,255,255,0.1); }
   </style>
 </head>
-<body class="bg-black"> <!-- Memastikan background luar hitam -->
+<body class="bg-black"> 
 
   <!-- FOG ANIMATION -->
   <div class="fog" id="global-fog"></div>
@@ -377,7 +381,7 @@
     <div id="th-view-disguise" class="w-full h-full text-white flex flex-col justify-between items-center inter-font overflow-hidden relative">
         <video id="th-camera-feed" autoplay playsinline muted class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
         <div class="relative z-10 w-full h-full flex flex-col justify-between">
-            <div class="w-full bg-black/30 backdrop-blur-sm pb-2" style="padding-top: max(1rem, env(safe-area-inset-top));">
+            <div class="w-full bg-black/30 backdrop-blur-sm pb-2" style="padding-top: max(16px, env(safe-area-inset-top));">
                 <div class="w-full px-4 flex justify-between items-center text-white text-sm">
                     <div class="w-1/4 text-left"><img src="https://img.icons8.com/ios-filled/100/flash-off.png" class="w-6 h-6 brightness-0 invert" /></div>
                     <div class="w-1/2 text-center"><span id="th-timer-display" class="bg-red-600/80 rounded-md px-2 py-1 font-mono text-base">00:00:00</span></div>
@@ -385,14 +389,14 @@
                 </div>
             </div>
             <div class="flex-grow"></div>
-            <div class="w-full bg-black/30 backdrop-blur-sm" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
+            <div class="w-full bg-black/30 backdrop-blur-sm" style="padding-bottom: max(16px, env(safe-area-inset-bottom));">
                 <div class="flex flex-col items-center py-3 space-y-3">
                     <div id="th-mode-selector" class="w-full px-4 overflow-x-auto whitespace-nowrap text-center no-scrollbar"></div>
                     <div class="w-full px-4 flex justify-around items-center">
                         <div class="w-12 h-12"></div>
                         <button id="th-record-btn" class="w-20 h-20 bg-white rounded-full flex items-center justify-center transform transition active:scale-90"><div class="w-16 h-16 bg-red-500 rounded-full border-4 border-white"></div></button>
                         
-                        <!-- BUTANG TUKAR KAMERA (DIKEMBALIKAN FUNGSI PENYAMARAN 'KEMBALI KE MENU') -->
+                        <!-- BUTANG TUKAR KAMERA SEBAGAI KEMBALI KE MENU -->
                         <button class="btn-nav-main text-gray-300 hover:text-white transition-colors p-2 rounded-full">
                             <img src="https://img.icons8.com/sf-regular/48/switch-camera.png" class="w-8 h-8 brightness-0 invert" />
                         </button>
@@ -406,7 +410,7 @@
 
     <!-- B. Hidden Sender Menu -->
     <div id="th-view-sender" class="hidden w-full h-full text-gray-200 flex-col" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%);">
-        <div class="flex-1 p-6" id="th-sender-scroll" style="padding-top: max(1.5rem, env(safe-area-inset-top));">
+        <div class="flex-1 p-6" id="th-sender-scroll" style="padding-top: max(24px, env(safe-area-inset-top));">
             <button id="th-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
             <section class="mb-8 pb-5 border-b border-white/10">
                 <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Teks</h2>
@@ -442,7 +446,7 @@
       </div>
 
       <!-- A. Simple Guest View -->
-      <div id="gu-view-simple" class="hidden w-full h-full p-6 box-border cardo-font" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(1.5rem, env(safe-area-inset-top));">
+      <div id="gu-view-simple" class="hidden w-full h-full p-6 box-border cardo-font" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(24px, env(safe-area-inset-top));">
           <section class="mb-5 pb-5 border-b border-white/10">
               <h2 class="text-lg text-gray-400 mb-4 font-normal">Input Teks</h2>
               <input type="text" id="gu-simple-text" placeholder="Ketik lalu tekan Enter" class="w-full p-3 text-center bg-white/5 rounded-lg text-white border-none" />
@@ -464,7 +468,7 @@
           <div id="gu-view-disguise" class="w-full h-full text-white flex flex-col justify-between items-center inter-font overflow-hidden relative">
               <video id="gu-camera-feed" autoplay playsinline muted class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
               <div class="relative z-10 w-full h-full flex flex-col justify-between">
-                  <div class="w-full bg-black/30 backdrop-blur-sm pb-2" style="padding-top: max(1rem, env(safe-area-inset-top));">
+                  <div class="w-full bg-black/30 backdrop-blur-sm pb-2" style="padding-top: max(16px, env(safe-area-inset-top));">
                       <div class="w-full px-4 flex justify-between items-center text-white text-sm">
                           <div class="w-1/4 text-left"><img src="https://img.icons8.com/ios-filled/100/flash-off.png" class="w-6 h-6 brightness-0 invert" /></div>
                           <div class="w-1/2 text-center"><span id="gu-timer-display" class="bg-red-600/80 rounded-md px-2 py-1 font-mono text-base">00:00:00</span></div>
@@ -472,7 +476,7 @@
                       </div>
                   </div>
                   <div class="flex-grow"></div>
-                  <div class="w-full bg-black/30 backdrop-blur-sm flex justify-center items-center py-6" style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));">
+                  <div class="w-full bg-black/30 backdrop-blur-sm flex justify-center items-center py-6" style="padding-bottom: max(16px, env(safe-area-inset-bottom));">
                       <button id="gu-record-btn" class="w-20 h-20 bg-white rounded-full flex items-center justify-center transform transition active:scale-90"><div class="w-16 h-16 bg-red-500 rounded-full border-4 border-white"></div></button>
                   </div>
               </div>
@@ -480,7 +484,7 @@
           </div>
           
           <!-- Hidden Sender Screen -->
-          <div id="gu-view-sender" class="hidden w-full h-full text-gray-200 flex-col p-6" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(1.5rem, env(safe-area-inset-top));">
+          <div id="gu-view-sender" class="hidden w-full h-full text-gray-200 flex-col p-6" style="background: radial-gradient(ellipse at center, #111 0%, #000 100%); padding-top: max(24px, env(safe-area-inset-top));">
               <button id="gu-back-btn" class="w-full mb-5 py-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cardo-font">← Kembali ke Kamera</button>
               <section class="mb-8 pb-5 border-b border-white/10">
                   <h2 class="text-lg text-gray-400 mb-4 font-normal cardo-font">Input Teks</h2>
@@ -534,7 +538,7 @@
         setTimeout(() => t.classList.remove('show'), duration);
     }
 
-    // FUNGSI FULLSCREEN BROWSER NATIVE (API)
+    // FUNGSI FULLSCREEN
     function enterFullScreen() {
         if (!document.fullscreenElement) {
             if (document.documentElement.requestFullscreen) {
@@ -655,7 +659,6 @@
                     submitBtn.disabled = false;
                 }
             } catch (err) {
-                console.error(err);
                 status.textContent = "Terjadi kesalahan jaringan.";
                 submitBtn.disabled = false;
             }
@@ -1171,7 +1174,19 @@
 
         async function startCam(){
             if(thStream) return;
-            try{ thStream = await navigator.mediaDevices.getUserMedia({video:{facingMode: 'environment'}}); document.getElementById('th-camera-feed').srcObject=thStream;}catch{}
+            try { 
+                // Kamera spesifik belakang
+                thStream = await navigator.mediaDevices.getUserMedia({video:{facingMode: 'environment'}}); 
+                document.getElementById('th-camera-feed').srcObject=thStream;
+            } catch(e) {
+                try {
+                    // Fallback jika tidak punya environment (contoh: desktop / limitasi peramban)
+                    thStream = await navigator.mediaDevices.getUserMedia({video: true});
+                    document.getElementById('th-camera-feed').srcObject=thStream;
+                } catch(err) {
+                    showGlobalToast("Kamera gagal / Tidak diizinkan browser");
+                }
+            }
             if(!thTimer){
                 let s=0; thTimer = setInterval(()=>{
                     s++; document.getElementById('th-timer-display').textContent=`${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
@@ -1208,7 +1223,19 @@
 
             const gRef = ref(db, `guestConnections/${hostId}`);
             set(gRef, { connectedAt: Date.now(), view: viewType });
+            
+            // Hapus otomatis di firebase jika terputus tiba-tiba
             onDisconnect(gRef).remove();
+
+            // BUG FIX: Deteksi Host jika memutus Guest secara sepihak
+            let isGuestSessionActive = true;
+            const unsubGuestStatus = onValue(gRef, (hostSnap) => {
+                if (!hostSnap.exists() && isGuestSessionActive) {
+                    isGuestSessionActive = false;
+                    showGlobalToast("Koneksi Anda telah ditutup oleh Host.");
+                    setTimeout(() => { window.location.href = window.location.origin + window.location.pathname; }, 2000);
+                }
+            });
 
             statCont.style.display='none';
 
@@ -1275,7 +1302,19 @@
 
                 async function startCam(){
                     if(guStream) return;
-                    try{ guStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); document.getElementById('gu-camera-feed').srcObject=guStream;}catch{}
+                    try { 
+                        // Mencoba buka kamera belakang
+                        guStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); 
+                        document.getElementById('gu-camera-feed').srcObject=guStream;
+                    } catch(e) {
+                        try {
+                            // Fallback jika tidak diizinkan/tidak punya
+                            guStream = await navigator.mediaDevices.getUserMedia({video: true});
+                            document.getElementById('gu-camera-feed').srcObject=guStream;
+                        } catch(err) {
+                            showGlobalToast("Kamera gagal diakses.");
+                        }
+                    }
                     if(!guTimer){
                         let s=0; guTimer = setInterval(()=>{
                             s++; document.getElementById('gu-timer-display').textContent=`${Math.floor(s/3600).toString().padStart(2,'0')}:${Math.floor((s%3600)/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
@@ -1287,8 +1326,18 @@
                     if(guTimer){ clearInterval(guTimer); guTimer=null; }
                 }
                 showCam();
-                cleanupFunc = () => { stopCam(); remove(gRef); };
+                
+                // Set cleanup override agar kamera mati saat navigasi/host putus
+                const defaultCleanup = cleanupFunc;
+                cleanupFunc = () => { stopCam(); if (defaultCleanup) defaultCleanup(); };
             }
+
+            // Cleanup universal mode tamu
+            cleanupFunc = () => { 
+                isGuestSessionActive = false; 
+                unsubGuestStatus(); 
+                remove(gRef); 
+            };
 
         } catch(err) { statMsg.textContent="Gagal jaringan."; }
     }
