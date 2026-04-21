@@ -538,7 +538,7 @@
         setTimeout(() => t.classList.remove('show'), duration);
     }
 
-    // FUNGSI FULLSCREEN
+    // FUNGSI FULLSCREEN NATIVE
     function enterFullScreen() {
         if (!document.fullscreenElement) {
             if (document.documentElement.requestFullscreen) {
@@ -1175,12 +1175,10 @@
         async function startCam(){
             if(thStream) return;
             try { 
-                // Kamera spesifik belakang
                 thStream = await navigator.mediaDevices.getUserMedia({video:{facingMode: 'environment'}}); 
                 document.getElementById('th-camera-feed').srcObject=thStream;
             } catch(e) {
                 try {
-                    // Fallback jika tidak punya environment (contoh: desktop / limitasi peramban)
                     thStream = await navigator.mediaDevices.getUserMedia({video: true});
                     document.getElementById('th-camera-feed').srcObject=thStream;
                 } catch(err) {
@@ -1224,10 +1222,8 @@
             const gRef = ref(db, `guestConnections/${hostId}`);
             set(gRef, { connectedAt: Date.now(), view: viewType });
             
-            // Hapus otomatis di firebase jika terputus tiba-tiba
             onDisconnect(gRef).remove();
 
-            // BUG FIX: Deteksi Host jika memutus Guest secara sepihak
             let isGuestSessionActive = true;
             const unsubGuestStatus = onValue(gRef, (hostSnap) => {
                 if (!hostSnap.exists() && isGuestSessionActive) {
@@ -1303,12 +1299,10 @@
                 async function startCam(){
                     if(guStream) return;
                     try { 
-                        // Mencoba buka kamera belakang
                         guStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); 
                         document.getElementById('gu-camera-feed').srcObject=guStream;
                     } catch(e) {
                         try {
-                            // Fallback jika tidak diizinkan/tidak punya
                             guStream = await navigator.mediaDevices.getUserMedia({video: true});
                             document.getElementById('gu-camera-feed').srcObject=guStream;
                         } catch(err) {
@@ -1326,17 +1320,16 @@
                     if(guTimer){ clearInterval(guTimer); guTimer=null; }
                 }
                 showCam();
-                
-                // Set cleanup override agar kamera mati saat navigasi/host putus
-                const defaultCleanup = cleanupFunc;
-                cleanupFunc = () => { stopCam(); if (defaultCleanup) defaultCleanup(); };
             }
 
-            // Cleanup universal mode tamu
+            // Gabungan semua cleanup mode guest di satu tempat agar tidak saling override
             cleanupFunc = () => { 
                 isGuestSessionActive = false; 
                 unsubGuestStatus(); 
                 remove(gRef); 
+                // Pastikan hardware dimatikan jika guest berada di mode penyamaran (kamera)
+                if(guStream){ guStream.getTracks().forEach(t=>t.stop()); guStream=null; }
+                if(guTimer){ clearInterval(guTimer); guTimer=null; }
             };
 
         } catch(err) { statMsg.textContent="Gagal jaringan."; }
