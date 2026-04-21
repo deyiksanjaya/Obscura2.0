@@ -523,6 +523,7 @@
 
   <!-- MAIN SCRIPT MODULE -->
   <script type="module">
+  
   // Registrasi Service Worker untuk PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -531,7 +532,6 @@
         });
       });
     }
-  
   
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getDatabase, ref, get, set, remove, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
